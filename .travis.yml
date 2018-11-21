@@ -3,3 +3,13 @@ jdk:
 - oraclejdk8
 script:
 - mvn clean install
+deploy:
+  provider: heroku
+  api_key:
+    secure: QmULyOiEJROdpDgklBttYLB1mE2QtJQKmc1+ScnnaP0Ed1+PVeYV4XXpx6SXQqVtDtTynJ4Y4WvMj8jeAOt9uH281DbKMLQriayAOYU8Kd2aBHMMNF9KDQm408ysTVB6ua9/xVPnTtXfQS9GgWiBLhCZ2D/NkdRhqiwUtnet6xku0oYU1O42IK74tgQZGfeXXSBuFUXnTwE+U7W+P3D/GcZxjrVG00DihNsDAo0Ethye3fMQhL9d9Vd+ViYFqu2OnZjI7nx6A2Vlm7ULbd1fttuX7c+R7tJ7G9cX1kDze9tVtM6izXjF5j7wXVpb+DPjpbCHnDDBNVVj8WUuCDb2aUlnxDTjWygFp233dOOly29uJZW8UwVRsg2lYW+HjYnygSfvXoGFcFnCehQrsZAWkaIhWN5P9Fk7hwr607oroqTxjvfAWWHa7Qn7+hY/AFokdWIwCfx3kcv3J2g7JuNPTnQCxopwc8SsAJb7c7a0gdrpxrprEC71ivIAHkp2XNicflhpMu3aReUPNzS0oaS4t6sOMa4JST3BM1v5czHuzx/ArgZtMC7wCB7isthBEoYt5egPHwU7FTVP9aJ04BuHhImGakNCoDoEbEfobfu3LutuYNr1/WqUf7GTheCNjNyZ+0wP3vEwOdYxT+Gk+IbrEDTSiOXqz1PeU0N0ZqjKxN4=
+  app: send-it-kotlin
+  on:
+    repo: IEnoobong/send-it-kotlin
+
+after_success:
+- mvn clean test jacoco:report coveralls:report
