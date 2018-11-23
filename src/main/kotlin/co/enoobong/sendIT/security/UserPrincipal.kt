@@ -6,9 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
 class UserPrincipal(
-    val id: Long,
-    private val password: String,
-    private val username: String,
+    val user: User,
     private val authorities: Collection<GrantedAuthority>
 ) : UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority> {
@@ -20,7 +18,7 @@ class UserPrincipal(
     }
 
     override fun getUsername(): String {
-        return username
+        return user.username
     }
 
     override fun isCredentialsNonExpired(): Boolean {
@@ -28,7 +26,7 @@ class UserPrincipal(
     }
 
     override fun getPassword(): String {
-        return password
+        return user.password
     }
 
     override fun isAccountNonExpired(): Boolean {
@@ -45,22 +43,20 @@ class UserPrincipal(
 
         other as UserPrincipal
 
-        if (id != other.id) return false
+        if (user != other.user) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return id.hashCode()
+        return user.hashCode()
     }
 
     companion object {
         fun create(user: User): UserPrincipal {
             val authorities = user.roles.map { role -> SimpleGrantedAuthority(role.name.name) }
             return UserPrincipal(
-                user.id,
-                user.username,
-                user.password,
+                user,
                 authorities
             )
         }
