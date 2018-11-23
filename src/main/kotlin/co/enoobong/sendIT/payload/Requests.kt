@@ -9,13 +9,13 @@ import javax.validation.constraints.Size
 class SignUpRequest(
     @field:NotBlank
     @field:Size(max = 40)
-    @JsonProperty("firstName")
+    @JsonProperty("firstname")
     val firstName: String,
     @field:NotBlank
     @field:Size(max = 40)
-    @JsonProperty("lastName")
+    @JsonProperty("lastname")
     val lastName: String,
-    @JsonProperty("otherNames")
+    @JsonProperty("othernames")
     val otherNames: String?,
     @field:Email
     @field:NotBlank
