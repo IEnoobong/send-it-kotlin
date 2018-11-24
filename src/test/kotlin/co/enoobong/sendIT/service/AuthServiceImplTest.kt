@@ -153,6 +153,7 @@ class AuthServiceImplTest {
         user.createdAt = Instant.now()
         val userPrincipal = UserPrincipal.create(user)
         every { authentication.principal } returns userPrincipal
+        every { authentication.isAuthenticated } returns true
 
         every {
             authenticationManager.authenticate(
