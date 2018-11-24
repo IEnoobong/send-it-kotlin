@@ -18,6 +18,7 @@ import co.enoobong.sendIT.utill.ENCRYPTED_PASSWORD
 import co.enoobong.sendIT.utill.TOKEN
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verifyOrder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -144,12 +145,12 @@ class AuthServiceImplTest {
     fun `login should log in valid user`() {
         val loginRequest = LoginRequest("ibanga@yahoo.co", "yagathem ")
 
-        val authentication = mockk<Authentication>()
         val role = Role(RoleName.ROLE_USER, 1)
         val user =
             User("Eno", "Ibanga", null, "ienoobong", "ibanga@yahoo.co", ENCRYPTED_PASSWORD, 1, mutableSetOf(role))
         user.createdAt = Instant.now()
         val userPrincipal = UserPrincipal.create(user)
+        val authentication = spyk<Authentication>()
         every { authentication.principal } returns userPrincipal
 
         every {
