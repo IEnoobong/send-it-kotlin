@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import javax.servlet.http.HttpServletRequest
 
 @ControllerAdvice
-class ExceptionHandler {
+class SendITExceptionHandler {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(SendITExceptionHandler::class.java)
     }
 
     @ExceptionHandler

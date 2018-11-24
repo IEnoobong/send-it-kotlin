@@ -24,22 +24,28 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
+interface AuthService {
+
+    fun signUpUser(signUpRequest: SignUpRequest): BaseApiResponse
+
+    fun loginUser(loginRequest: LoginRequest): BaseApiResponse
+}
+
 @Service
-class AuthService(
+class AuthServiceImpl(
     private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
     private val passwordEncoder: PasswordEncoder,
     private val tokenProvider: JwtTokenProvider,
-    val authenticationManager: AuthenticationManager
-) {
+    private val authenticationManager: AuthenticationManager
+) : AuthService {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(AuthServiceImpl::class.java)
     }
 
-    fun signUpUser(signUpRequest: SignUpRequest): BaseApiResponse {
+    override fun signUpUser(signUpRequest: SignUpRequest): BaseApiResponse {
         val encodedPassword = passwordEncoder.encode(signUpRequest.password)
-        println("Encoded $encodedPassword")
         signUpRequest.password = encodedPassword
         val user = signUpRequest.toUser()
 
@@ -57,7 +63,7 @@ class AuthService(
         }
     }
 
-    fun loginUser(loginRequest: LoginRequest): BaseApiResponse {
+    override fun loginUser(loginRequest: LoginRequest): BaseApiResponse {
         val authentication = authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(
                 loginRequest.userNameOrEmail,
@@ -70,13 +76,13 @@ class AuthService(
         val userPrincipal = authentication.principal as UserPrincipal
 
         val jwt = tokenProvider.generateToken(userPrincipal.user.id)
-        val signUpResponse = UserResponse(jwt, userPrincipal.user.toUserDTO())
-        return SuccessApiResponse(HttpStatus.OK.value(), listOf(signUpResponse))
+        val loginResponse = UserResponse(jwt, userPrincipal.user.toUserDTO())
+        return SuccessApiResponse(HttpStatus.OK.value(), listOf(loginResponse))
     }
 
 }
 
-private fun User.toUserDTO(): UserDTO {
+fun User.toUserDTO(): UserDTO {
     return with(this) {
         UserDTO(
             id,

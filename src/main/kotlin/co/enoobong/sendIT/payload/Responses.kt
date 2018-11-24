@@ -13,11 +13,11 @@ class UserResponse(val token: String, val user: UserDTO)
 
 class UserDTO(
     val id: Long,
-    @JsonProperty("firstname")
+    @get:JsonProperty("firstname")
     val firstName: String,
-    @JsonProperty("lastname")
+    @get:JsonProperty("lastname")
     val lastName: String,
-    @JsonProperty("othernames")
+    @field:JsonProperty("othernames")
     val otherNames: String?,
     val username: String,
     val email: String,

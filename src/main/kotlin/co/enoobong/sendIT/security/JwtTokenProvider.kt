@@ -15,7 +15,7 @@ import java.util.Date
 class JwtTokenProvider {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(JwtTokenProvider::class.java)
     }
 
     @Value("\${app.jwtSecret}")
