@@ -22,7 +22,6 @@ import io.mockk.verifyOrder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
 import org.springframework.dao.DataIntegrityViolationException
@@ -34,7 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.Instant
 import java.util.Optional
 
-@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class AuthServiceImplTest {
 
     private val userRepository = mockk<UserRepository>()
@@ -153,7 +151,6 @@ class AuthServiceImplTest {
         user.createdAt = Instant.now()
         val userPrincipal = UserPrincipal.create(user)
         every { authentication.principal } returns userPrincipal
-        every { authentication.isAuthenticated } returns true
 
         every {
             authenticationManager.authenticate(
