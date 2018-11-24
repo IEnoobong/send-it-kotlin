@@ -30,7 +30,7 @@ enum class RoleName {
 class Role(
     @Enumerated(EnumType.STRING)
     @NaturalId
-    @Column(length = 60, nullable = false)
+    @Column(length = 60, nullable = false, unique = true)
     val name: RoleName,
 
     @Id

@@ -11,7 +11,7 @@ class ErrorApiResponse(status: Int, val error: String?) : BaseApiResponse(status
 
 class UserResponse(val token: String, val user: UserDTO)
 
-class UserDTO(
+data class UserDTO(
     val id: Long,
     @get:JsonProperty("firstname")
     val firstName: String,

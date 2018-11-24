@@ -1,9 +1,9 @@
 INSERT
 IGNORE
 INTO
-roles
+  `roles`
 (
-name
+  `name`
 )
 VALUES
 (
@@ -12,9 +12,9 @@ VALUES
 INSERT
 IGNORE
 INTO
-roles
+  `roles`
 (
-name
+  `name`
 )
 VALUES
 (
