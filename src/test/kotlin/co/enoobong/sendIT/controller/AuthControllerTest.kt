@@ -50,7 +50,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             post("/api/auth/v1/signup")
-                .contentType(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(signUpRequest.toJsonString())
         )
             .andExpect(status().isCreated)
