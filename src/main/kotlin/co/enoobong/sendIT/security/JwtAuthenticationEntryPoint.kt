@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse
 @Component
 class JwtAuthenticationEntryPoint : AuthenticationEntryPoint {
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(JwtAuthenticationEntryPoint::class.java)
     }
 
     override fun commence(
@@ -18,7 +18,7 @@ class JwtAuthenticationEntryPoint : AuthenticationEntryPoint {
         response: HttpServletResponse,
         authException: AuthenticationException
     ) {
-        LOG.error("Responding with unauthorized error. Message - {}", authException.message)
+        LOG.error("Responding with unauthorized error. Message", authException)
         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.message)
     }
 }

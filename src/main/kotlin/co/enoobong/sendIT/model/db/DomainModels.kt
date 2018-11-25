@@ -30,7 +30,7 @@ enum class RoleName {
 class Role(
     @Enumerated(EnumType.STRING)
     @NaturalId
-    @Column(length = 60, nullable = false)
+    @Column(length = 60, nullable = false, unique = true)
     val name: RoleName,
 
     @Id
@@ -94,7 +94,7 @@ class User(
         joinColumns = [JoinColumn(name = "user_id")],
         inverseJoinColumns = [JoinColumn(name = "role_id")]
     )
-    val roles: Set<Role> = setOf()
+    val roles: MutableSet<Role> = mutableSetOf()
 ) : DateAudit() {
 
     override fun equals(other: Any?): Boolean {
