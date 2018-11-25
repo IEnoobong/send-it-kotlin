@@ -16,10 +16,12 @@ import co.enoobong.sendIT.security.JwtTokenProvider
 import co.enoobong.sendIT.security.UserPrincipal
 import co.enoobong.sendIT.utill.ENCRYPTED_PASSWORD
 import co.enoobong.sendIT.utill.TOKEN
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verifyOrder
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.doThrow
+import com.nhaarman.mockito_kotlin.inOrder
+import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -36,34 +38,39 @@ import java.util.Optional
 
 class AuthServiceImplTest {
 
-    private val userRepository = mockk<UserRepository>()
+    private companion object {
+        private const val password = "yagathem"
+    }
 
-    private val roleRepository = mockk<RoleRepository>()
+    private val userRepository = mock<UserRepository> {
 
-    private val passwordEncoder = mockk<PasswordEncoder>()
+    }
 
-    private val tokenProvider = mockk<JwtTokenProvider>()
+    private val roleRepository = mock<RoleRepository>()
 
-    private val authenticationManager = mockk<AuthenticationManager>()
+    private val passwordEncoder = mock<PasswordEncoder> {
+        on { encode(password) } doReturn (ENCRYPTED_PASSWORD)
+    }
+
+    private val tokenProvider = mock<JwtTokenProvider>()
+
+    private val authenticationManager = mock<AuthenticationManager>()
 
     private val authService =
         AuthServiceImpl(userRepository, roleRepository, passwordEncoder, tokenProvider, authenticationManager)
 
     @Test
     fun `sign up should create new user`() {
-        val password = "yagathem"
         val signUpRequest = SignUpRequest("Eno", "Ibanga", null, "ibanga@yahoo.co", "ienoobong", password)
 
-        every { passwordEncoder.encode(password) } returns ENCRYPTED_PASSWORD
-
         val role = Role(RoleName.ROLE_USER, 1)
-        every { roleRepository.findRoleByName(RoleName.ROLE_USER) } returns Optional.of(role)
+        whenever(roleRepository.findRoleByName(RoleName.ROLE_USER)) doReturn Optional.of(role)
 
         val user = signUpRequest.toUser()
         user.createdAt = Instant.now()
-        every { userRepository.save(any<User>()) } returns user
+        whenever(userRepository.save(any<User>())) doReturn user
 
-        every { tokenProvider.generateToken(user.id) } returns TOKEN
+        whenever(tokenProvider.generateToken(user.id)) doReturn TOKEN
 
         val apiResponse = authService.signUpUser(signUpRequest)
 
@@ -85,11 +92,14 @@ class AuthServiceImplTest {
             }
         )
 
-        verifyOrder {
-            passwordEncoder.encode(password)
-            roleRepository.findRoleByName(RoleName.ROLE_USER)
-            userRepository.save(any<User>())
-            tokenProvider.generateToken(user.id)
+        inOrder(passwordEncoder, roleRepository, userRepository, tokenProvider) {
+            verify(passwordEncoder).encode(password)
+
+            verify(roleRepository).findRoleByName(RoleName.ROLE_USER)
+
+            verify(userRepository).save(any<User>())
+
+            verify(tokenProvider).generateToken(user.id)
         }
 
     }
@@ -98,27 +108,22 @@ class AuthServiceImplTest {
     @Test
     fun `sign up should throw AppException when user role not set`() {
         val signUpRequest = SignUpRequest("Eno", "Ibanga", null, "ibanga@yahoo.co", "ienoobong", "yagathem")
-        every { passwordEncoder.encode(signUpRequest.password) } returns ENCRYPTED_PASSWORD
-        every { roleRepository.findRoleByName(RoleName.ROLE_USER) } returns Optional.empty()
+        whenever(roleRepository.findRoleByName(RoleName.ROLE_USER)) doReturn Optional.empty()
 
         val exception = assertThrows<AppException> {
             authService.signUpUser(signUpRequest)
         }
         assertEquals("${RoleName.ROLE_USER} has not been set", exception.message)
-
     }
 
     @Test
     fun `sign up should return error response when data integrity is violated`() {
-        val password = "yagathem"
         val signUpRequest = SignUpRequest("Eno", "Ibanga", null, "ibanga@yahoo.co", "ienoobong", password)
 
-        every { passwordEncoder.encode(password) } returns ENCRYPTED_PASSWORD
-
         val role = Role(RoleName.ROLE_USER, 1)
-        every { roleRepository.findRoleByName(RoleName.ROLE_USER) } returns Optional.of(role)
+        whenever(roleRepository.findRoleByName(RoleName.ROLE_USER)) doReturn Optional.of(role)
 
-        every { userRepository.save(any<User>()) } throws DataIntegrityViolationException("")
+        whenever(userRepository.save(any<User>())) doThrow DataIntegrityViolationException("Constraint Violation")
 
         val apiResponse = authService.signUpUser(signUpRequest)
 
@@ -134,10 +139,10 @@ class AuthServiceImplTest {
             }
         )
 
-        verifyOrder {
-            passwordEncoder.encode(password)
-            roleRepository.findRoleByName(RoleName.ROLE_USER)
-            userRepository.save(any<User>())
+        inOrder(passwordEncoder, roleRepository, userRepository) {
+            verify(passwordEncoder).encode(password)
+            verify(roleRepository).findRoleByName(RoleName.ROLE_USER)
+            verify(userRepository).save(any<User>())
         }
     }
 
@@ -150,19 +155,20 @@ class AuthServiceImplTest {
             User("Eno", "Ibanga", null, "ienoobong", "ibanga@yahoo.co", ENCRYPTED_PASSWORD, 1, mutableSetOf(role))
         user.createdAt = Instant.now()
         val userPrincipal = UserPrincipal.create(user)
-        val authentication = spyk<Authentication>()
-        every { authentication.principal } returns userPrincipal
+        val authentication = mock<Authentication> {
+            on { principal } doReturn userPrincipal
+        }
 
-        every {
+        whenever(
             authenticationManager.authenticate(
                 UsernamePasswordAuthenticationToken(
                     loginRequest.userNameOrEmail,
                     loginRequest.password
                 )
             )
-        } returns authentication
+        ) doReturn authentication
 
-        every { tokenProvider.generateToken(user.id) } returns TOKEN
+        whenever(tokenProvider.generateToken(user.id)) doReturn TOKEN
 
         val apiResponse = authService.loginUser(loginRequest)
 
@@ -184,10 +190,10 @@ class AuthServiceImplTest {
             }
         )
 
-        verifyOrder {
-            authenticationManager.authenticate(any())
-            authentication.principal
-            tokenProvider.generateToken(user.id)
+        inOrder(authenticationManager, authentication, tokenProvider) {
+            verify(authenticationManager).authenticate(any())
+            verify(authentication).principal
+            verify(tokenProvider).generateToken(user.id)
         }
 
     }
