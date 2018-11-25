@@ -15,7 +15,7 @@ import java.util.Date
 class JwtTokenProvider {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(JwtTokenProvider::class.java)
     }
 
     @Value("\${app.jwtSecret}")
@@ -24,12 +24,12 @@ class JwtTokenProvider {
     @Value("\${app.jwtExpirationInMs}")
     private var jwtExpirationInMs: Int = 0
 
-    fun generateToken(userPrincipal: UserPrincipal): String {
+    fun generateToken(userId: Long): String {
         val now = Date()
         val expiryDate = Date(now.time + jwtExpirationInMs)
 
         return Jwts.builder()
-            .setSubject(userPrincipal.id.toString())
+            .setSubject(userId.toString())
             .setIssuedAt(Date())
             .setExpiration(expiryDate)
             .signWith(SignatureAlgorithm.HS512, jwtSecret)

@@ -1,5 +1,6 @@
 package co.enoobong.sendIT.exception
 
+import co.enoobong.sendIT.payload.ErrorApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation
 import org.springframework.http.HttpStatus
@@ -8,36 +9,27 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
-import java.time.Instant
 import javax.servlet.http.HttpServletRequest
 
 @ControllerAdvice
-class ExceptionHandler {
+class SendITExceptionHandler {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(SendITExceptionHandler::class.java)
     }
 
     @ExceptionHandler
     fun handleException(
         exception: Exception,
         httpRequest: HttpServletRequest
-    ): ResponseEntity<ExceptionRepresentation> {
-        val timeStamp = Instant.now()
+    ): ResponseEntity<ErrorApiResponse> {
         val httpStatus = resolveAnnotatedResponseStatus(exception)
 
         LOG.error("Error Occurred", exception)
 
-        val exceptionRepresentation =
-            ExceptionRepresentation(
-                timeStamp,
-                httpStatus.value(),
-                httpStatus.reasonPhrase,
-                exception.message,
-                httpRequest.servletPath
-            )
+        val errorApiResponse = ErrorApiResponse(httpStatus.value(), exception.message)
 
-        return ResponseEntity(exceptionRepresentation, httpStatus)
+        return ResponseEntity(errorApiResponse, httpStatus)
 
     }
 
@@ -47,11 +39,3 @@ class ExceptionHandler {
         return annotation?.value ?: HttpStatus.INTERNAL_SERVER_ERROR
     }
 }
-
-class ExceptionRepresentation(
-    val timestamp: Instant,
-    val status: Int,
-    val error: String,
-    val message: String?,
-    val path: String
-)

@@ -15,7 +15,7 @@ class JwtAuthenticationFilter(
 ) : OncePerRequestFilter() {
 
     private companion object {
-        private val LOG = LoggerFactory.getLogger(this::class.java)
+        private val LOG = LoggerFactory.getLogger(JwtAuthenticationFilter::class.java)
     }
 
     override fun doFilterInternal(
