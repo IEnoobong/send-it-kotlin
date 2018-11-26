@@ -16,4 +16,3 @@ class SendITApplication {
 fun main(args: Array<String>) {
     runApplication<SendITApplication>(*args)
 }
-
