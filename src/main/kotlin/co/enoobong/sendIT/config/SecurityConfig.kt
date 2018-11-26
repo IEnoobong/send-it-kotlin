@@ -81,6 +81,14 @@ class SecurityConfig(
                 "/**/*.js"
             )
             .permitAll()
+            .antMatchers(
+                "/csrf",
+                "/v2/api-docs",
+                "/swagger-resources/**",
+                "/webjars/**",
+                "/swagger-ui.html"
+            )
+            .permitAll()
             .antMatchers("/api/auth/**")
             .permitAll()
             .antMatchers("/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")

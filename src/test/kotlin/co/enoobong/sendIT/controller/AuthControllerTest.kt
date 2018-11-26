@@ -1,5 +1,6 @@
 package co.enoobong.sendIT.controller
 
+import co.enoobong.sendIT.config.ControllerTest
 import co.enoobong.sendIT.model.db.User
 import co.enoobong.sendIT.payload.ErrorApiResponse
 import co.enoobong.sendIT.payload.LoginRequest
@@ -14,12 +15,10 @@ import co.enoobong.sendIT.utill.toJsonString
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
@@ -27,9 +26,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
 
-@SpringBootTest(properties = ["spring.datasource.initialization-mode=never"])
-@ActiveProfiles("test")
-@AutoConfigureMockMvc
+@ControllerTest
+@WebMvcTest(value = [AuthController::class])
 class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @MockBean
