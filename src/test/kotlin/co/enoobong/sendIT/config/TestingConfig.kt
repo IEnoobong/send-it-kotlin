@@ -1,23 +1,17 @@
 package co.enoobong.sendIT.config
 
+import co.enoobong.sendIT.repository.UserRepository
+import com.nhaarman.mockito_kotlin.mock
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType
-import javax.sql.DataSource
 
 @Configuration
-class DataSourceConfig {
+@Profile("test")
+class TestingConfig {
 
     @Bean
-    @Profile("test")
-    fun dataSource(): DataSource {
-        return EmbeddedDatabaseBuilder()
-            .generateUniqueName(true)
-            .setType(EmbeddedDatabaseType.H2)
-            .setScriptEncoding("UTF-8")
-            .ignoreFailedDrops(true)
-            .build()
+    fun userRepository(): UserRepository {
+        return mock()
     }
 }
