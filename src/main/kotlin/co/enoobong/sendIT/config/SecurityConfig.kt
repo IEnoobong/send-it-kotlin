@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -69,36 +70,44 @@ class SecurityConfig(
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-            .antMatchers(
-                "/",
-                "/favicon.ico",
-                "/**/*.png",
-                "/**/*.gif",
-                "/**/*.svg",
-                "/**/*.jpg",
-                "/**/*.html",
-                "/**/*.css",
-                "/**/*.js"
-            )
-            .permitAll()
-            .antMatchers(
-                "/csrf",
-                "/v2/api-docs",
-                "/swagger-resources/**",
-                "/webjars/**",
-                "/swagger-ui.html"
-            )
-            .permitAll()
+            .enableStaticResourceAccess()
+            .enableSwaggerAccess()
             .antMatchers("/api/auth/**")
             .permitAll()
             .antMatchers("/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")
             .permitAll()
-            .antMatchers(HttpMethod.GET, "/api/polls/**", "/api/users/**")
+            .antMatchers(HttpMethod.GET, "/api/users/**")
             .permitAll()
             .anyRequest()
             .authenticated()
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter::class.java)
+    }
 
+    private fun ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry.enableStaticResourceAccess(): ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry {
+        return this.antMatchers(
+            "/",
+            "/favicon.ico",
+            "/**/*.png",
+            "/**/*.gif",
+            "/**/*.svg",
+            "/**/*.jpg",
+            "/**/*.html",
+            "/**/*.css",
+            "/**/*.js"
+        )
+            .permitAll()
+
+    }
+
+    private fun ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry.enableSwaggerAccess(): ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry {
+        return this.antMatchers(
+            "/csrf",
+            "/v2/api-docs",
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/swagger-ui.html"
+        )
+            .permitAll()
     }
 }
