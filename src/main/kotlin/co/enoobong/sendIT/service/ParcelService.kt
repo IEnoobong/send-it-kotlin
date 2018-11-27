@@ -36,7 +36,7 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
             SuccessApiResponse(HttpStatus.CREATED.value(), listOf(ParcelCreatedResponse(savedParcel.id)))
         } catch (ex: Exception) {
             LOG.error("Error occurred when trying to save parcel", ex)
-            ErrorApiResponse(HttpStatus.BAD_REQUEST.value(), "Error occurred when trying to save parcel")
+            ErrorApiResponse(HttpStatus.BAD_REQUEST.value(), "Error occurred when trying to create parcel delivery")
         }
     }
 

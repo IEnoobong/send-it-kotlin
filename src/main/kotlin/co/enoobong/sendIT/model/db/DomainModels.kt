@@ -235,7 +235,7 @@ data class Address(
 
     @Column(name = "zip_code")
     @field:JsonProperty("zip_code")
-    val zipCode: String?
+    val zipCode: String? = null
 ) {
     fun displayableAddress(): String {
         return "$streetNumber $streetName, $city, $state, $country"
