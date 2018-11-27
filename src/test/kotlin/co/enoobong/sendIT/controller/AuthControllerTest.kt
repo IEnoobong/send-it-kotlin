@@ -47,7 +47,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
 
         mockMvc.perform(
-            post("/api/auth/v1/signup")
+            post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(signUpRequest.toJsonString())
         )
@@ -70,7 +70,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
 
         mockMvc.perform(
-            post("/api/auth/v1/signup")
+            post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(signUpRequest.toJsonString())
         )
@@ -93,7 +93,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
 
         mockMvc.perform {
-            post("/api/auth/v1/login")
+            post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(loginRequest.toJsonString())
                 .buildRequest(it)
