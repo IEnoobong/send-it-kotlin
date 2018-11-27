@@ -1,21 +1,28 @@
 package co.enoobong.sendIT.payload
 
+import co.enoobong.sendIT.model.db.Address
+import co.enoobong.sendIT.model.db.Parcel
+import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.model.db.User
+import co.enoobong.sendIT.model.db.WeightMetric
 import com.fasterxml.jackson.annotation.JsonProperty
+import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotNull
+import javax.validation.constraints.Positive
 import javax.validation.constraints.Size
 
 class SignUpRequest(
     @field:NotBlank
     @field:Size(max = 40)
-    @field:JsonProperty("firstname")
+    @field:JsonProperty("first_name")
     val firstName: String,
     @field:NotBlank
     @field:Size(max = 40)
-    @field:JsonProperty("lastname")
+    @field:JsonProperty("last_name")
     val lastName: String,
-    @field:JsonProperty("othernames")
+    @field:JsonProperty("other_names")
     val otherNames: String?,
     @field:Email
     @field:NotBlank
@@ -63,7 +70,7 @@ fun SignUpRequest.toUser(): User {
 
 class LoginRequest(
     @field:NotBlank
-    @field:JsonProperty("usernameoremail")
+    @field:JsonProperty("user_name_or_email")
     val userNameOrEmail: String,
     @field:NotBlank
     val password: String
@@ -84,5 +91,25 @@ class LoginRequest(
         var result = userNameOrEmail.hashCode()
         result = 31 * result + password.hashCode()
         return result
+    }
+}
+
+data class ParcelDeliveryRequest(
+    @field:Positive
+    val weight: Float,
+    @field:NotNull
+    val weightMetric: WeightMetric,
+    @field:Valid
+    val from: Address,
+    @field:Valid
+    val to: Address,
+    @field:Valid
+    @field:JsonProperty("current_location")
+    val currentLocation: Address
+)
+
+fun ParcelDeliveryRequest.toParcel(): Parcel {
+    return with(this) {
+        Parcel(weight, weightMetric, ParcelStatus.PLACED, from, to, currentLocation)
     }
 }
