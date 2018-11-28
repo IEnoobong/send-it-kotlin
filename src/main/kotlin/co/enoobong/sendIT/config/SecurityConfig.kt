@@ -72,7 +72,7 @@ class SecurityConfig(
             .authorizeRequests()
             .enableStaticResourceAccess()
             .enableSwaggerAccess()
-            .antMatchers("/api/auth/**")
+            .antMatchers("/api/**/auth/**")
             .permitAll()
             .antMatchers("/api/user/checkUsernameAvailability", "/api/user/checkEmailAvailability")
             .permitAll()

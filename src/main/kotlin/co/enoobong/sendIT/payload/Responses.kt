@@ -1,5 +1,7 @@
 package co.enoobong.sendIT.payload
 
+import co.enoobong.sendIT.model.db.ParcelStatus
+import co.enoobong.sendIT.model.db.WeightMetric
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
@@ -13,14 +15,38 @@ class UserResponse(val token: String, val user: UserDTO)
 
 data class UserDTO(
     val id: Long,
-    @get:JsonProperty("firstname")
+    @get:JsonProperty("first_name")
     val firstName: String,
-    @get:JsonProperty("lastname")
+    @get:JsonProperty("last_name")
     val lastName: String,
-    @field:JsonProperty("othernames")
+    @field:JsonProperty("other_names")
     val otherNames: String?,
     val username: String,
     val email: String,
     val registered: Instant,
     val isAdmin: Boolean
+)
+
+class ParcelCreatedResponse(
+    @field:JsonProperty("id") val parcelId: Long,
+    val message: String = "order created"
+)
+
+class ParcelDeliveryDTO(
+    @field:JsonProperty("id")
+    val parcelId: Long,
+    @field:JsonProperty("placed_by")
+    val placedBy: Long,
+    val weight: Float,
+    @field:JsonProperty("weight_metric")
+    val weightMetric: WeightMetric,
+    @field:JsonProperty("sent_on")
+    val sentOn: Instant?,
+    @field:JsonProperty("delivered_on")
+    val deliveredOn: Instant?,
+    val status: ParcelStatus,
+    val from: String,
+    val to: String,
+    @field:JsonProperty("current_location")
+    val currentLocation: String
 )

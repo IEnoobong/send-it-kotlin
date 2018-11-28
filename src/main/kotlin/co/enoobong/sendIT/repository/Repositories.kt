@@ -1,6 +1,7 @@
 package co.enoobong.sendIT.repository
 
 
+import co.enoobong.sendIT.model.db.Parcel
 import co.enoobong.sendIT.model.db.Role
 import co.enoobong.sendIT.model.db.RoleName
 import co.enoobong.sendIT.model.db.User
@@ -19,4 +20,8 @@ interface UserRepository : JpaRepository<User, Long> {
 interface RoleRepository : CrudRepository<Role, Long> {
 
     fun findRoleByName(name: RoleName): Optional<Role>
+
 }
+
+@Repository
+interface ParcelRepository : JpaRepository<Parcel, Long>
