@@ -33,7 +33,8 @@ class ParcelCreatedResponse(
 )
 
 class ParcelDeliveryDTO(
-    val id: Long,
+    @field:JsonProperty("id")
+    val parcelId: Long,
     @field:JsonProperty("placed_by")
     val placedBy: Long,
     val weight: Float,
