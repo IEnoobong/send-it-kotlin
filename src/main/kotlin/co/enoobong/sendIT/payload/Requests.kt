@@ -70,7 +70,7 @@ fun SignUpRequest.toUser(): User {
 
 class LoginRequest(
     @field:NotBlank
-    @field:JsonProperty("user_name_or_email")
+    @field:JsonProperty("username_or_email")
     val userNameOrEmail: String,
     @field:NotBlank
     val password: String

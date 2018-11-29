@@ -42,9 +42,7 @@ class AuthServiceImplTest {
         private const val password = "yagathem"
     }
 
-    private val userRepository = mock<UserRepository> {
-
-    }
+    private val userRepository = mock<UserRepository>()
 
     private val roleRepository = mock<RoleRepository>()
 
