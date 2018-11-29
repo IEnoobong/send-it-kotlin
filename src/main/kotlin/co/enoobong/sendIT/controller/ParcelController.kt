@@ -1,9 +1,12 @@
 package co.enoobong.sendIT.controller
 
+import co.enoobong.sendIT.model.db.RoleName
 import co.enoobong.sendIT.payload.BaseApiResponse
 import co.enoobong.sendIT.payload.ParcelCreatedResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
 import co.enoobong.sendIT.payload.SuccessApiResponse
+import co.enoobong.sendIT.security.CurrentUser
+import co.enoobong.sendIT.security.UserPrincipal
 import co.enoobong.sendIT.service.ParcelService
 import co.enoobong.sendIT.util.toHttpStatus
 import org.springframework.http.HttpStatus
@@ -11,6 +14,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -42,9 +46,22 @@ class ParcelController(private val parcelService: ParcelService) {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN')")
     fun getAllParcelDeliveryOrders(): ResponseEntity<BaseApiResponse> {
         val response = parcelService.getAllParcelDeliveryOrders()
+
+        return ResponseEntity(response, response.status.toHttpStatus())
+    }
+
+    @GetMapping("{parcelId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    fun getParcelDeliveryOrder(@CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long): ResponseEntity<BaseApiResponse> {
+        val notAdmin = !currentUser.user.roles.map { it.name }.contains(RoleName.ROLE_ADMIN)
+        if (notAdmin) {
+            val response = parcelService.getParcelDeliveryOrderForUser(currentUser.user.id, parcelId)
+            return ResponseEntity(response, response.status.toHttpStatus())
+        }
+        val response = parcelService.getParcelDeliveryOrder(parcelId)
 
         return ResponseEntity(response, response.status.toHttpStatus())
     }

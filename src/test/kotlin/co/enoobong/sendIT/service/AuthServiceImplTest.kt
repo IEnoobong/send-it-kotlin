@@ -15,7 +15,7 @@ import co.enoobong.sendIT.repository.UserRepository
 import co.enoobong.sendIT.security.JwtTokenProvider
 import co.enoobong.sendIT.security.UserPrincipal
 import co.enoobong.sendIT.utill.ENCRYPTED_PASSWORD
-import co.enoobong.sendIT.utill.TOKEN
+import co.enoobong.sendIT.utill.USER_TOKEN
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.doThrow
@@ -42,9 +42,7 @@ class AuthServiceImplTest {
         private const val password = "yagathem"
     }
 
-    private val userRepository = mock<UserRepository> {
-
-    }
+    private val userRepository = mock<UserRepository>()
 
     private val roleRepository = mock<RoleRepository>()
 
@@ -70,7 +68,7 @@ class AuthServiceImplTest {
         user.createdAt = Instant.now()
         whenever(userRepository.save(any<User>())) doReturn user
 
-        whenever(tokenProvider.generateToken(user.id)) doReturn TOKEN
+        whenever(tokenProvider.generateToken(user.id)) doReturn USER_TOKEN
 
         val apiResponse = authService.signUpUser(signUpRequest)
 
@@ -82,7 +80,7 @@ class AuthServiceImplTest {
 
             {
                 apiResponse as SuccessApiResponse<UserResponse>
-                assertEquals(TOKEN, apiResponse.data[0].token)
+                assertEquals(USER_TOKEN, apiResponse.data[0].token)
 
             },
 
@@ -168,7 +166,7 @@ class AuthServiceImplTest {
             )
         ) doReturn authentication
 
-        whenever(tokenProvider.generateToken(user.id)) doReturn TOKEN
+        whenever(tokenProvider.generateToken(user.id)) doReturn USER_TOKEN
 
         val apiResponse = authService.loginUser(loginRequest)
 
@@ -180,7 +178,7 @@ class AuthServiceImplTest {
 
             {
                 apiResponse as SuccessApiResponse<UserResponse>
-                assertEquals(TOKEN, apiResponse.data[0].token)
+                assertEquals(USER_TOKEN, apiResponse.data[0].token)
 
             },
 
