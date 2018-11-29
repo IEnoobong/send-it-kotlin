@@ -10,3 +10,6 @@ class ResourceNotFoundException(resourceName: String, fieldName: String, fieldVa
 @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 class AppException(message: String) : RuntimeException(message)
 
+@ResponseStatus(HttpStatus.UNAUTHORIZED)
+class UnauthorizedAccessException(message: String) : RuntimeException(message)
+

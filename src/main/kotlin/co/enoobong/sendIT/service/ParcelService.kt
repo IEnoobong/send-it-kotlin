@@ -1,5 +1,6 @@
 package co.enoobong.sendIT.service
 
+import co.enoobong.sendIT.exception.ResourceNotFoundException
 import co.enoobong.sendIT.model.db.Parcel
 import co.enoobong.sendIT.payload.BaseApiResponse
 import co.enoobong.sendIT.payload.ErrorApiResponse
@@ -19,6 +20,12 @@ interface ParcelService {
     fun createParcel(parcelDeliveryRequest: ParcelDeliveryRequest): BaseApiResponse
 
     fun getAllParcelDeliveryOrders(): BaseApiResponse
+
+    fun getParcelDeliveryOrder(parcelId: Long): BaseApiResponse
+
+    fun getAllParcelDeliveryOrderForUser(userId: Long): BaseApiResponse
+
+    fun getParcelDeliveryOrderForUser(userId: Long, parcelId: Long): BaseApiResponse
 }
 
 @Service
@@ -47,6 +54,29 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
         val parcelDeliveries = allParcelDeliveryOrders.mapTo(ArrayList(size)) { it.toParcelDeliveryDTO() }
         return SuccessApiResponse(HttpStatus.OK.value(), parcelDeliveries)
     }
+
+    override fun getParcelDeliveryOrderForUser(userId: Long, parcelId: Long): BaseApiResponse {
+        val parcelDeliveryOrder = parcelRepository.findByIdAndCreatedBy(parcelId, userId).orElseThrow {
+            ResourceNotFoundException("Parcel", "parcelId", parcelId)
+        }
+        return SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelDeliveryOrder.toParcelDeliveryDTO()))
+    }
+
+    override fun getParcelDeliveryOrder(parcelId: Long): BaseApiResponse {
+        val parcelDeliveryOrder = parcelRepository.findById(parcelId).orElseThrow {
+            ResourceNotFoundException("Parcel", "parcelId", parcelId)
+        }
+        return SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelDeliveryOrder.toParcelDeliveryDTO()))
+    }
+
+    override fun getAllParcelDeliveryOrderForUser(userId: Long): BaseApiResponse {
+        val userParcelDeliveries = parcelRepository.findByCreatedBy(userId)
+        val size = userParcelDeliveries.size
+
+        val parcelDeliveryDTOs = userParcelDeliveries.mapTo(ArrayList(size)) { it.toParcelDeliveryDTO() }
+        return SuccessApiResponse(HttpStatus.OK.value(), parcelDeliveryDTOs)
+    }
+
 }
 
 fun Parcel.toParcelDeliveryDTO(): ParcelDeliveryDTO {

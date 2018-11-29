@@ -24,4 +24,9 @@ interface RoleRepository : CrudRepository<Role, Long> {
 }
 
 @Repository
-interface ParcelRepository : JpaRepository<Parcel, Long>
+interface ParcelRepository : JpaRepository<Parcel, Long> {
+
+    fun findByCreatedBy(userId: Long): List<Parcel>
+
+    fun findByIdAndCreatedBy(parcelId: Long, userId: Long): Optional<Parcel>
+}

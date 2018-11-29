@@ -23,9 +23,13 @@ inline fun <reified R> Any.toType(): R {
     return objectMapper.convertValue(this)
 }
 
-const val TOKEN =
+const val USER_TOKEN =
     "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNTQzMzQwMDQzLCJleHAiOjE1NDM5NDQ4NDN9.fnAtynsY5MHHhoRE6DiUlUzuG0uisSvnKkcdQcwAhDN1IE9JPKj8UWnkyoSuoQzimqt48ElDlUoZOJIFWvyN2A"
+
+const val ADMIN_TOKEN =
+    "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIyIiwiaWF0IjoxNTQzNDc0NTg0LCJleHAiOjE1NDQwNzkzODR9.lhZ49uk3wGCcbn-KYATGeF-5mUGWLRwC9w1IXlAJtOSCgc-c3XsTmq51nvl-HX6AKy2c_KUfktGKyOtL20BK9A"
 
 const val ENCRYPTED_PASSWORD = "\$2a\$10\$gptP07mpA8RX2s6EI4l1KO99kQuwxU19A1ALrhpBuyvKQFTnQOGKG"
 
 const val USER_ID = 1L
+const val ADMIN_ID = 2L
