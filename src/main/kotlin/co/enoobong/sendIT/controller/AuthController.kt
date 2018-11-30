@@ -4,6 +4,7 @@ import co.enoobong.sendIT.payload.BaseApiResponse
 import co.enoobong.sendIT.payload.LoginRequest
 import co.enoobong.sendIT.payload.SignUpRequest
 import co.enoobong.sendIT.service.AuthService
+import co.enoobong.sendIT.util.toHttpStatus
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -16,13 +17,13 @@ import javax.validation.Valid
 
 @RestController
 @RequestMapping(
-    "auth",
+    "v1/auth",
     produces = [MediaType.APPLICATION_JSON_UTF8_VALUE],
     consumes = [MediaType.APPLICATION_JSON_UTF8_VALUE]
 )
 class AuthController(private val authService: AuthService) {
 
-    @PostMapping("v1/signup")
+    @PostMapping("signup")
     fun signUp(@RequestBody @Valid signUpRequest: SignUpRequest): ResponseEntity<BaseApiResponse> {
         val response = authService.signUpUser(signUpRequest)
         return if (response.status == HttpStatus.CREATED.value()) {
@@ -32,13 +33,13 @@ class AuthController(private val authService: AuthService) {
                 .buildAndExpand(signUpRequest.username).toUri()
             ResponseEntity.created(location).body(response)
         } else {
-            ResponseEntity(response, HttpStatus.resolve(response.status) ?: HttpStatus.INTERNAL_SERVER_ERROR)
+            ResponseEntity(response, response.status.toHttpStatus())
         }
     }
 
-    @PostMapping("v1/login")
+    @PostMapping("login")
     fun login(@RequestBody @Valid loginRequest: LoginRequest): ResponseEntity<BaseApiResponse> {
         val response = authService.loginUser(loginRequest)
-        return ResponseEntity(response, HttpStatus.resolve(response.status) ?: HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity(response, response.status.toHttpStatus())
     }
 }

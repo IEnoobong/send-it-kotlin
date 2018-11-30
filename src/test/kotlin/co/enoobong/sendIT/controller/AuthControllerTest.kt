@@ -10,7 +10,7 @@ import co.enoobong.sendIT.payload.UserResponse
 import co.enoobong.sendIT.payload.toUser
 import co.enoobong.sendIT.service.AuthService
 import co.enoobong.sendIT.service.toUserDTO
-import co.enoobong.sendIT.utill.TOKEN
+import co.enoobong.sendIT.utill.USER_TOKEN
 import co.enoobong.sendIT.utill.toJsonString
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -38,7 +38,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         val signUpRequest = SignUpRequest("Eno", "Ibanga", null, "ibanga@yahoo.co", "ienoobong", "yagthem")
         val user = signUpRequest.toUser()
         user.createdAt = Instant.now()
-        val signUpResponse = UserResponse(TOKEN, user.toUserDTO())
+        val signUpResponse = UserResponse(USER_TOKEN, user.toUserDTO())
         given(authService.signUpUser(signUpRequest)).willReturn(
             SuccessApiResponse(
                 HttpStatus.CREATED.value(),
@@ -47,7 +47,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
 
         mockMvc.perform(
-            post("/api/auth/v1/signup")
+            post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(signUpRequest.toJsonString())
         )
@@ -70,7 +70,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
 
         mockMvc.perform(
-            post("/api/auth/v1/signup")
+            post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(signUpRequest.toJsonString())
         )
@@ -84,7 +84,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         val loginRequest = LoginRequest("ibanga@yahoo.co", "yagathem ")
         val user = User("Eno", "Ibanga", null, "ienoobong", "ibanga@yahoo.co", "yagathem")
         user.createdAt = Instant.now()
-        val loginResponse = UserResponse(TOKEN, user.toUserDTO())
+        val loginResponse = UserResponse(USER_TOKEN, user.toUserDTO())
         given(authService.loginUser(loginRequest)).willReturn(
             SuccessApiResponse(
                 HttpStatus.OK.value(),
@@ -93,7 +93,7 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
 
         mockMvc.perform {
-            post("/api/auth/v1/login")
+            post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(loginRequest.toJsonString())
                 .buildRequest(it)
