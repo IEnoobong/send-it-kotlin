@@ -4,9 +4,9 @@ import co.enoobong.sendIT.model.db.Address
 import co.enoobong.sendIT.model.db.Parcel
 import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.model.db.WeightMetric
-import co.enoobong.sendIT.payload.ParcelCreatedResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryDTO
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
+import co.enoobong.sendIT.payload.ParcelModifiedResponse
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.payload.toParcel
 import co.enoobong.sendIT.repository.ParcelRepository
@@ -37,7 +37,7 @@ class ParcelServiceImplTest {
         val createParcelResponse = parcelService.createParcel(parcelDeliveryRequest)
 
         createParcelResponse as SuccessApiResponse<*>
-        val parcelCreatedResponse = createParcelResponse.data[0] as ParcelCreatedResponse
+        val parcelCreatedResponse = createParcelResponse.data[0] as ParcelModifiedResponse
         assertAll(
             {
                 assertEquals(HttpStatus.CREATED.value(), createParcelResponse.status)

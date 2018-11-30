@@ -2,16 +2,18 @@ package co.enoobong.sendIT.service
 
 import co.enoobong.sendIT.exception.ResourceNotFoundException
 import co.enoobong.sendIT.model.db.Parcel
+import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.payload.BaseApiResponse
-import co.enoobong.sendIT.payload.ParcelCreatedResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryDTO
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
+import co.enoobong.sendIT.payload.ParcelModifiedResponse
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.payload.toParcel
 import co.enoobong.sendIT.repository.ParcelRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.ArrayList
+import javax.transaction.Transactional
 
 interface ParcelService {
 
@@ -24,6 +26,8 @@ interface ParcelService {
     fun getAllParcelDeliveryOrderForUser(userId: Long): BaseApiResponse
 
     fun getParcelDeliveryOrderForUser(userId: Long, parcelId: Long): BaseApiResponse
+
+    fun cancelParcelDeliveryOrder(isUser: Boolean, userId: Long, parcelId: Long): BaseApiResponse
 }
 
 @Service
@@ -34,7 +38,7 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
 
         val savedParcel = parcelRepository.save(parcel)
 
-        return SuccessApiResponse(HttpStatus.CREATED.value(), listOf(ParcelCreatedResponse(savedParcel.id)))
+        return SuccessApiResponse(HttpStatus.CREATED.value(), listOf(ParcelModifiedResponse(savedParcel.id)))
     }
 
     override fun getAllParcelDeliveryOrders(): BaseApiResponse {
@@ -65,6 +69,44 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
 
         val parcelDeliveryDTOs = userParcelDeliveries.mapTo(ArrayList(size)) { it.toParcelDeliveryDTO() }
         return SuccessApiResponse(HttpStatus.OK.value(), parcelDeliveryDTOs)
+    }
+
+    @Transactional
+    override fun cancelParcelDeliveryOrder(isUser: Boolean, userId: Long, parcelId: Long): BaseApiResponse {
+        return if (isUser) {
+            cancelUserParcelDeliveryOrder(userId, parcelId)
+        } else {
+            cancelParcelDeliveryOrder(parcelId)
+        }
+    }
+
+    private fun cancelParcelDeliveryOrder(parcelId: Long): BaseApiResponse {
+        val rowsUpdated =
+            parcelRepository.updateParcelStatusWhereStatusIsNotDelivered(parcelId, ParcelStatus.CANCELLED)
+        return if (rowsUpdated == 1) {
+            val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
+            SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
+        } else {
+            throw ResourceNotFoundException("Parcel with id $parcelId does not exist in undelivered state")
+        }
+    }
+
+    private fun cancelUserParcelDeliveryOrder(
+        userId: Long,
+        parcelId: Long
+    ): BaseApiResponse {
+        val rowsUpdated =
+            parcelRepository.updateParcelStatusWhereOwnerIsAndStatusIsNotDelivered(
+                userId,
+                parcelId,
+                ParcelStatus.CANCELLED
+            )
+        return if (rowsUpdated == 1) {
+            val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
+            SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
+        } else {
+            throw ResourceNotFoundException("Parcel with id $parcelId belonging to user with id $userId does not exist in undelivered state")
+        }
     }
 }
 

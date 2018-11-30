@@ -5,9 +5,9 @@ import co.enoobong.sendIT.model.db.Address
 import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.model.db.WeightMetric
 import co.enoobong.sendIT.payload.ErrorApiResponse
-import co.enoobong.sendIT.payload.ParcelCreatedResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryDTO
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
+import co.enoobong.sendIT.payload.ParcelModifiedResponse
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.service.ParcelService
 import co.enoobong.sendIT.utill.ADMIN_TOKEN
@@ -24,6 +24,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
@@ -42,7 +43,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
         val parcelDeliveryRequest = ParcelDeliveryRequest(1f, WeightMetric.KG, address, address, address)
 
-        val parcelCreatedResponse = ParcelCreatedResponse(1)
+        val parcelCreatedResponse = ParcelModifiedResponse(1)
         val apiResponse = SuccessApiResponse(HttpStatus.CREATED.value(), listOf(parcelCreatedResponse))
         given(parcelService.createParcel(parcelDeliveryRequest)).willReturn(apiResponse)
 
@@ -205,6 +206,24 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
         mockMvc.perform(
             get("/api/v1/parcels/$parcelId")
                 .header("Authorization", "Bearer $ADMIN_TOKEN")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
+            .andExpect(jsonPath("\$.data.[0]").isMap)
+            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+    }
+
+    @Test
+    fun `cancel parcel delivery order should cancel parcel delivery order`() {
+        val parcelId = 1L
+        val httpStatus = HttpStatus.OK.value()
+        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
+        val apiResponse = SuccessApiResponse(httpStatus, listOf(parcelModifiedResponse))
+        given(parcelService.cancelParcelDeliveryOrder(true, USER_ID, 1)).willReturn(apiResponse)
+
+        mockMvc.perform(
+            patch("/api/v1/parcels/$parcelId/cancel")
+                .header("Authorization", "Bearer $USER_TOKEN")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))

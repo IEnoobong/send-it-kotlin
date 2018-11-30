@@ -268,5 +268,6 @@ enum class WeightMetric {
 enum class ParcelStatus {
     PLACED,
     TRANSITING,
-    DELIVERED
+    DELIVERED,
+    CANCELLED
 }
