@@ -1,10 +1,10 @@
 package co.enoobong.sendIT.controller
 
 import co.enoobong.sendIT.exception.UnauthorizedAccessException
-import co.enoobong.sendIT.model.db.RoleName
 import co.enoobong.sendIT.payload.BaseApiResponse
 import co.enoobong.sendIT.security.CurrentUser
 import co.enoobong.sendIT.security.UserPrincipal
+import co.enoobong.sendIT.security.isUser
 import co.enoobong.sendIT.service.ParcelService
 import co.enoobong.sendIT.util.toHttpStatus
 import org.springframework.http.MediaType
@@ -24,7 +24,7 @@ class UserController(private val parcelService: ParcelService) {
 
     @GetMapping("{userId}/parcels")
     fun getParcelDeliveryOrder(@CurrentUser currentUser: UserPrincipal, @PathVariable("userId") userId: Long): ResponseEntity<BaseApiResponse> {
-        val isUser = currentUser.user.roles.map { it.name }.contains(RoleName.ROLE_USER)
+        val isUser = currentUser.isUser()
         if (isUser && currentUser.user.id != userId) {
             throw UnauthorizedAccessException("You can only view your parcel delivery orders")
         }

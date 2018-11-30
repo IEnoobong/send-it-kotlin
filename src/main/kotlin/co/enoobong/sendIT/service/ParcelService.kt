@@ -80,17 +80,6 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
         }
     }
 
-    private fun cancelParcelDeliveryOrder(parcelId: Long): BaseApiResponse {
-        val rowsUpdated =
-            parcelRepository.updateParcelStatusWhereStatusIsNotDelivered(parcelId, ParcelStatus.CANCELLED)
-        return if (rowsUpdated == 1) {
-            val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
-            SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
-        } else {
-            throw ResourceNotFoundException("Parcel with id $parcelId does not exist in undelivered state")
-        }
-    }
-
     private fun cancelUserParcelDeliveryOrder(
         userId: Long,
         parcelId: Long
@@ -102,11 +91,25 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
                 ParcelStatus.CANCELLED
             )
         return if (rowsUpdated == 1) {
-            val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
-            SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
+            parcelModifiedSuccessResponse(parcelId)
         } else {
             throw ResourceNotFoundException("Parcel with id $parcelId belonging to user with id $userId does not exist in undelivered state")
         }
+    }
+
+    private fun cancelParcelDeliveryOrder(parcelId: Long): BaseApiResponse {
+        val rowsUpdated =
+            parcelRepository.updateParcelStatusWhereStatusIsNotDelivered(parcelId, ParcelStatus.CANCELLED)
+        return if (rowsUpdated == 1) {
+            parcelModifiedSuccessResponse(parcelId)
+        } else {
+            throw ResourceNotFoundException("Parcel with id $parcelId does not exist in undelivered state")
+        }
+    }
+
+    private fun parcelModifiedSuccessResponse(parcelId: Long): SuccessApiResponse<ParcelModifiedResponse> {
+        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
+        return SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
     }
 }
 

@@ -7,6 +7,7 @@ import co.enoobong.sendIT.payload.ParcelModifiedResponse
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.security.CurrentUser
 import co.enoobong.sendIT.security.UserPrincipal
+import co.enoobong.sendIT.security.isUser
 import co.enoobong.sendIT.service.ParcelService
 import co.enoobong.sendIT.util.toHttpStatus
 import org.springframework.http.HttpStatus
@@ -69,7 +70,7 @@ class ParcelController(private val parcelService: ParcelService) {
 
     @PatchMapping("{parcelId}/cancel")
     fun cancelParcelDeliveryOrder(@CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long): ResponseEntity<BaseApiResponse> {
-        val isUser = currentUser.user.roles.map { it.name }.contains(RoleName.ROLE_USER)
+        val isUser = currentUser.isUser()
 
         val response = parcelService.cancelParcelDeliveryOrder(isUser, currentUser.user.id, parcelId)
         return ResponseEntity(response, response.status.toHttpStatus())
