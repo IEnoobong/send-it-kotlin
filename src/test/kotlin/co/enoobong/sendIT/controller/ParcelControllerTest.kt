@@ -43,7 +43,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
         val parcelDeliveryRequest = ParcelDeliveryRequest(1f, WeightMetric.KG, address, address, address)
 
-        val parcelCreatedResponse = ParcelModifiedResponse(1)
+        val parcelCreatedResponse = ParcelModifiedResponse(1, "order created")
         val apiResponse = SuccessApiResponse(HttpStatus.CREATED.value(), listOf(parcelCreatedResponse))
         given(parcelService.createParcel(parcelDeliveryRequest)).willReturn(apiResponse)
 
@@ -217,7 +217,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
     fun `cancel parcel delivery order should cancel parcel delivery order`() {
         val parcelId = 1L
         val httpStatus = HttpStatus.OK.value()
-        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
+        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order cancelled")
         val apiResponse = SuccessApiResponse(httpStatus, listOf(parcelModifiedResponse))
         given(parcelService.cancelParcelDeliveryOrder(true, USER_ID, 1)).willReturn(apiResponse)
 
@@ -225,6 +225,26 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
             patch("/api/v1/parcels/$parcelId/cancel")
                 .header("Authorization", "Bearer $USER_TOKEN")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
+            .andExpect(jsonPath("\$.data.[0]").isMap)
+            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+    }
+
+    @Test
+    fun `change parcel destination should change it's destination`() {
+        val parcelId = 1L
+        val httpStatus = HttpStatus.OK.value()
+        val newDestination = Address(1, "Udemba", "Saka", "Nice", "France")
+        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order cancelled")
+        val apiResponse = SuccessApiResponse(httpStatus, listOf(parcelModifiedResponse))
+        given(parcelService.changeParcelDirection(true, USER_ID, 1, newDestination)).willReturn(apiResponse)
+
+        mockMvc.perform(
+            patch("/api/v1/parcels/$parcelId/destination")
+                .header("Authorization", "Bearer $USER_TOKEN")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(newDestination.toJsonString())
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))
             .andExpect(jsonPath("\$.data.[0]").isMap)

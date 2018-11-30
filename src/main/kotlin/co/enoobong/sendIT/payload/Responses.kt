@@ -2,6 +2,7 @@ package co.enoobong.sendIT.payload
 
 import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.model.db.WeightMetric
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 
@@ -29,7 +30,9 @@ data class UserDTO(
 
 class ParcelModifiedResponse(
     @field:JsonProperty("id") val parcelId: Long,
-    val message: String = "order created"
+    val message: String,
+    @field:JsonInclude(JsonInclude.Include.NON_NULL)
+    val to: String? = null
 )
 
 class ParcelDeliveryDTO(
