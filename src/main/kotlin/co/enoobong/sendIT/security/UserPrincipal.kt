@@ -1,5 +1,6 @@
 package co.enoobong.sendIT.security
 
+import co.enoobong.sendIT.model.db.RoleName
 import co.enoobong.sendIT.model.db.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -61,4 +62,8 @@ class UserPrincipal(
             )
         }
     }
+}
+
+fun UserPrincipal.isUser(): Boolean {
+    return this.user.roles.map { it.name }.contains(RoleName.ROLE_USER)
 }

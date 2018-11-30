@@ -220,7 +220,9 @@ class Parcel(
     }
 
     override fun hashCode(): Int {
-        return id.hashCode()
+        var result = id.hashCode()
+        result = 31 * result + createdBy.hashCode()
+        return result
     }
 
 
@@ -268,5 +270,6 @@ enum class WeightMetric {
 enum class ParcelStatus {
     PLACED,
     TRANSITING,
-    DELIVERED
+    DELIVERED,
+    CANCELLED
 }

@@ -1,12 +1,13 @@
 package co.enoobong.sendIT.service
 
+import co.enoobong.sendIT.exception.ResourceNotFoundException
 import co.enoobong.sendIT.model.db.Address
 import co.enoobong.sendIT.model.db.Parcel
 import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.model.db.WeightMetric
-import co.enoobong.sendIT.payload.ParcelCreatedResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryDTO
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
+import co.enoobong.sendIT.payload.ParcelModifiedResponse
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.payload.toParcel
 import co.enoobong.sendIT.repository.ParcelRepository
@@ -17,6 +18,7 @@ import com.nhaarman.mockito_kotlin.whenever
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
+import org.junit.jupiter.api.assertThrows
 import org.springframework.http.HttpStatus
 import java.util.Optional
 
@@ -37,7 +39,7 @@ class ParcelServiceImplTest {
         val createParcelResponse = parcelService.createParcel(parcelDeliveryRequest)
 
         createParcelResponse as SuccessApiResponse<*>
-        val parcelCreatedResponse = createParcelResponse.data[0] as ParcelCreatedResponse
+        val parcelCreatedResponse = createParcelResponse.data[0] as ParcelModifiedResponse
         assertAll(
             {
                 assertEquals(HttpStatus.CREATED.value(), createParcelResponse.status)
@@ -163,6 +165,111 @@ class ParcelServiceImplTest {
 
         inOrder(parcelRepository) {
             verify(parcelRepository).findByCreatedBy(USER_ID)
+        }
+    }
+
+    @Test
+    fun `cancel delivery order as user should cancel delivery order`() {
+        val parcelId = 1L
+        val parcelStatus = ParcelStatus.CANCELLED
+        whenever(
+            parcelRepository.updateParcelStatusWhereOwnerIsAndStatusIsNotDelivered(
+                parcelId,
+                USER_ID,
+                parcelStatus
+            )
+        ).thenReturn(1)
+
+        val cancelParcelDeliveryOrder = parcelService.cancelParcelDeliveryOrder(true, USER_ID, parcelId)
+
+        cancelParcelDeliveryOrder as SuccessApiResponse<*>
+        val parcelModifiedResponse = cancelParcelDeliveryOrder.data[0] as ParcelModifiedResponse
+        assertAll(
+            {
+                assertEquals(HttpStatus.OK.value(), cancelParcelDeliveryOrder.status)
+            },
+            {
+                assertEquals(parcelId, parcelModifiedResponse.parcelId)
+            }
+        )
+
+        inOrder(parcelRepository) {
+            verify(parcelRepository).updateParcelStatusWhereOwnerIsAndStatusIsNotDelivered(
+                parcelId,
+                USER_ID,
+                parcelStatus
+            )
+        }
+    }
+
+    @Test
+    fun `cancel delivery order should cancel delivery order`() {
+        val parcelId = 1L
+        val parcelStatus = ParcelStatus.CANCELLED
+        whenever(parcelRepository.updateParcelStatusWhereStatusIsNotDelivered(parcelId, parcelStatus)).thenReturn(1)
+
+        val cancelParcelDeliveryOrder = parcelService.cancelParcelDeliveryOrder(false, USER_ID, parcelId)
+
+        cancelParcelDeliveryOrder as SuccessApiResponse<*>
+        val parcelModifiedResponse = cancelParcelDeliveryOrder.data[0] as ParcelModifiedResponse
+        assertAll(
+            {
+                assertEquals(HttpStatus.OK.value(), cancelParcelDeliveryOrder.status)
+            },
+            {
+                assertEquals(parcelId, parcelModifiedResponse.parcelId)
+            }
+        )
+
+        inOrder(parcelRepository) {
+            verify(parcelRepository).updateParcelStatusWhereStatusIsNotDelivered(parcelId, parcelStatus)
+        }
+    }
+
+    @Test
+    fun `cancel delivery order as user when delivery order already delivered or not found should throw exception`() {
+        val parcelId = 1L
+        val parcelStatus = ParcelStatus.CANCELLED
+        whenever(
+            parcelRepository.updateParcelStatusWhereOwnerIsAndStatusIsNotDelivered(
+                parcelId,
+                USER_ID,
+                parcelStatus
+            )
+        ).thenReturn(0)
+
+        val exception = assertThrows<ResourceNotFoundException> {
+            parcelService.cancelParcelDeliveryOrder(true, USER_ID, parcelId)
+        }
+
+        assertEquals(
+            "Parcel with id $parcelId belonging to user with id $USER_ID does not exist in undelivered state",
+            exception.message
+        )
+
+        inOrder(parcelRepository) {
+            verify(parcelRepository).updateParcelStatusWhereOwnerIsAndStatusIsNotDelivered(
+                parcelId,
+                USER_ID,
+                parcelStatus
+            )
+        }
+    }
+
+    @Test
+    fun `cancel delivery order when delivery order already delivered or not found should throw exception`() {
+        val parcelId = 1L
+        val parcelStatus = ParcelStatus.CANCELLED
+        whenever(parcelRepository.updateParcelStatusWhereStatusIsNotDelivered(parcelId, parcelStatus)).thenReturn(0)
+
+        val exception = assertThrows<ResourceNotFoundException> {
+            parcelService.cancelParcelDeliveryOrder(false, USER_ID, parcelId)
+        }
+
+        assertEquals("Parcel with id $parcelId does not exist in undelivered state", exception.message)
+
+        inOrder(parcelRepository) {
+            verify(parcelRepository).updateParcelStatusWhereStatusIsNotDelivered(parcelId, parcelStatus)
         }
     }
 }

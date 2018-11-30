@@ -27,7 +27,7 @@ data class UserDTO(
     val isAdmin: Boolean
 )
 
-class ParcelCreatedResponse(
+class ParcelModifiedResponse(
     @field:JsonProperty("id") val parcelId: Long,
     val message: String = "order created"
 )
