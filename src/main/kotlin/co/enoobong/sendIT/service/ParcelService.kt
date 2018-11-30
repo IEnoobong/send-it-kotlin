@@ -1,6 +1,7 @@
 package co.enoobong.sendIT.service
 
 import co.enoobong.sendIT.exception.ResourceNotFoundException
+import co.enoobong.sendIT.model.db.Address
 import co.enoobong.sendIT.model.db.Parcel
 import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.payload.BaseApiResponse
@@ -28,17 +29,34 @@ interface ParcelService {
     fun getParcelDeliveryOrderForUser(userId: Long, parcelId: Long): BaseApiResponse
 
     fun cancelParcelDeliveryOrder(isUser: Boolean, userId: Long, parcelId: Long): BaseApiResponse
+
+    fun changeParcelDirection(
+        isUser: Boolean,
+        userId: Long,
+        parcelId: Long,
+        newDestination: Address
+    ): BaseApiResponse
 }
 
 @Service
 class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : ParcelService {
+
+    private companion object {
+        private const val PARCEL_DESTINATION_MESSAGE = "Parcel destination updated"
+        private const val PARCEL_CREATED_MESSAGE = "order created"
+        private const val PARCEL_CANCELLED_MESSAGE = "order cancelled"
+
+    }
 
     override fun createParcel(parcelDeliveryRequest: ParcelDeliveryRequest): BaseApiResponse {
         val parcel = parcelDeliveryRequest.toParcel()
 
         val savedParcel = parcelRepository.save(parcel)
 
-        return SuccessApiResponse(HttpStatus.CREATED.value(), listOf(ParcelModifiedResponse(savedParcel.id)))
+        return SuccessApiResponse(
+            HttpStatus.CREATED.value(),
+            listOf(ParcelModifiedResponse(savedParcel.id, PARCEL_CREATED_MESSAGE))
+        )
     }
 
     override fun getAllParcelDeliveryOrders(): BaseApiResponse {
@@ -91,7 +109,7 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
                 ParcelStatus.CANCELLED
             )
         return if (rowsUpdated == 1) {
-            parcelModifiedSuccessResponse(parcelId)
+            parcelModifiedSuccessResponse(parcelId, PARCEL_CANCELLED_MESSAGE)
         } else {
             throw ResourceNotFoundException("Parcel with id $parcelId belonging to user with id $userId does not exist in undelivered state")
         }
@@ -101,15 +119,79 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
         val rowsUpdated =
             parcelRepository.updateParcelStatusWhereStatusIsNotDelivered(parcelId, ParcelStatus.CANCELLED)
         return if (rowsUpdated == 1) {
-            parcelModifiedSuccessResponse(parcelId)
+            parcelModifiedSuccessResponse(parcelId, PARCEL_CANCELLED_MESSAGE)
         } else {
             throw ResourceNotFoundException("Parcel with id $parcelId does not exist in undelivered state")
         }
     }
 
-    private fun parcelModifiedSuccessResponse(parcelId: Long): SuccessApiResponse<ParcelModifiedResponse> {
-        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order canceled")
+    private fun parcelModifiedSuccessResponse(
+        parcelId: Long,
+        message: String,
+        newDestination: Address? = null
+    ): SuccessApiResponse<ParcelModifiedResponse> {
+        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, message, newDestination?.displayableAddress())
         return SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
+    }
+
+    @Transactional
+    override fun changeParcelDirection(
+        isUser: Boolean,
+        userId: Long,
+        parcelId: Long,
+        newDestination: Address
+    ): BaseApiResponse {
+        return if (isUser) {
+            changeUserParcelDirection(userId, parcelId, newDestination)
+        } else {
+            changeParcelDirection(parcelId, newDestination)
+        }
+    }
+
+    private fun changeParcelDirection(
+        parcelId: Long,
+        newDestination: Address
+    ): SuccessApiResponse<ParcelModifiedResponse> {
+        val (streetNumber, streetName, city, state, country, zipCode) = newDestination
+        val rowsAffected =
+            parcelRepository.changeUndeliveredParcelDestination(
+                parcelId,
+                streetNumber,
+                streetName,
+                city,
+                state,
+                country,
+                zipCode
+            )
+        return if (rowsAffected == 1) {
+            parcelModifiedSuccessResponse(parcelId, PARCEL_DESTINATION_MESSAGE, newDestination)
+        } else {
+            throw ResourceNotFoundException("Couldn't change destination of parcel with id $parcelId")
+        }
+    }
+
+    private fun changeUserParcelDirection(
+        userId: Long,
+        parcelId: Long,
+        newDestination: Address
+    ): SuccessApiResponse<ParcelModifiedResponse> {
+        val (streetNumber, streetName, city, state, country, zipCode) = newDestination
+        val rowsAffected =
+            parcelRepository.changeUserUndeliveredParcelDestination(
+                userId,
+                parcelId,
+                streetNumber,
+                streetName,
+                city,
+                state,
+                country,
+                zipCode
+            )
+        return if (rowsAffected == 1) {
+            parcelModifiedSuccessResponse(parcelId, PARCEL_DESTINATION_MESSAGE, newDestination)
+        } else {
+            throw ResourceNotFoundException("Couldn't change destination of parcel with id $parcelId")
+        }
     }
 }
 
