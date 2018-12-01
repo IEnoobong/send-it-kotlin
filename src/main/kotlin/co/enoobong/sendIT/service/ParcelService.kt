@@ -190,7 +190,7 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
         return if (rowsAffected == 1) {
             parcelModifiedSuccessResponse(parcelId, PARCEL_DESTINATION_MESSAGE, newDestination)
         } else {
-            throw ResourceNotFoundException("Couldn't change destination of parcel with id $parcelId")
+            throw ResourceNotFoundException("Couldn't change destination of parcel with id $parcelId for user with id $userId")
         }
     }
 }

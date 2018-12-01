@@ -364,10 +364,18 @@ class ParcelServiceImplTest {
             parcelService.changeParcelDirection(isUser, USER_ID, parcelId, newDestination)
         }
 
-        assertEquals(
-            "Couldn't change destination of parcel with id $parcelId",
-            exception.message
-        )
+        if (isUser) {
+            assertEquals(
+                "Couldn't change destination of parcel with id $parcelId for user with id $USER_ID",
+                exception.message
+            )
+        } else {
+            assertEquals(
+                "Couldn't change destination of parcel with id $parcelId",
+                exception.message
+            )
+        }
+
 
         verifyDeliveryDestinationRepos(isUser, parcelId, newDestination)
     }
