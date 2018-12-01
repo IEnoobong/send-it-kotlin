@@ -8,6 +8,7 @@ import co.enoobong.sendIT.payload.ErrorApiResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryDTO
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
 import co.enoobong.sendIT.payload.ParcelModifiedResponse
+import co.enoobong.sendIT.payload.ParcelStatusRequest
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.service.ParcelService
 import co.enoobong.sendIT.utill.ADMIN_TOKEN
@@ -245,6 +246,26 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
                 .header("Authorization", "Bearer $USER_TOKEN")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newDestination.toJsonString())
+        ).andExpect(status().isOk)
+            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
+            .andExpect(jsonPath("\$.data.[0]").isMap)
+            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+    }
+
+    @Test
+    fun `change parcel status should change it's status`() {
+        val parcelId = 1L
+        val httpStatus = HttpStatus.OK.value()
+        val newStatus = ParcelStatusRequest(ParcelStatus.TRANSITING)
+        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "Parcel location updated")
+        val apiResponse = SuccessApiResponse(httpStatus, listOf(parcelModifiedResponse))
+        given(parcelService.changeParcelStatus(parcelId, ParcelStatus.TRANSITING)).willReturn(apiResponse)
+
+        mockMvc.perform(
+            patch("/api/v1/parcels/$parcelId/status")
+                .header("Authorization", "Bearer $ADMIN_TOKEN")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(newStatus.toJsonString())
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))
             .andExpect(jsonPath("\$.data.[0]").isMap)
