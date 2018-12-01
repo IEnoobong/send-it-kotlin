@@ -19,6 +19,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.http.HttpStatus
 import java.util.Optional
 
@@ -271,5 +274,109 @@ class ParcelServiceImplTest {
         inOrder(parcelRepository) {
             verify(parcelRepository).updateParcelStatusWhereStatusIsNotDelivered(parcelId, parcelStatus)
         }
+    }
+
+    companion object {
+        @JvmStatic
+        fun parcelDestinationParams(): List<Arguments> {
+            return listOf(
+                Arguments.of(true),
+                Arguments.of(false)
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("parcelDestinationParams")
+    fun `change parcel delivery destination should change it's destination`(isUser: Boolean) {
+        val parcelId = 1L
+        val newDestination = Address(1, "Udemba", "Saka", "Nice", "France")
+        setupDeliveryRepo(newDestination, isUser, parcelId, 1)
+
+        val changeParcelOrderDirection = parcelService.changeParcelDirection(isUser, USER_ID, parcelId, newDestination)
+
+        changeParcelOrderDirection as SuccessApiResponse<*>
+        val parcelModifiedResponse = changeParcelOrderDirection.data[0] as ParcelModifiedResponse
+        assertAll(
+            {
+                assertEquals(HttpStatus.OK.value(), changeParcelOrderDirection.status)
+            },
+            {
+                assertEquals(parcelId, parcelModifiedResponse.parcelId)
+            }
+        )
+
+        verifyDeliveryDestinationRepos(isUser, parcelId, newDestination)
+    }
+
+    private fun verifyDeliveryDestinationRepos(isUser: Boolean, parcelId: Long, newDestination: Address) {
+        val (streetNumber, streetName, city, state, country, zipCode) = newDestination
+        inOrder(parcelRepository) {
+            if (isUser) {
+                verify(parcelRepository).changeUserUndeliveredParcelDestination(
+                    parcelId,
+                    USER_ID,
+                    streetNumber, streetName, city, state, country, zipCode
+                )
+            } else {
+                verify(parcelRepository).changeUndeliveredParcelDestination(
+                    parcelId,
+                    streetNumber, streetName, city, state, country, zipCode
+                )
+            }
+        }
+    }
+
+    private fun setupDeliveryRepo(
+        newDestination: Address,
+        isUser: Boolean,
+        parcelId: Long, valueToReturn: Int
+    ) {
+        val (streetNumber, streetName, city, state, country, zipCode) = newDestination
+        if (isUser) {
+            whenever(
+                parcelRepository.changeUserUndeliveredParcelDestination(
+                    parcelId,
+                    USER_ID,
+                    streetNumber, streetName, city, state, country, zipCode
+                )
+            ).thenReturn(valueToReturn)
+        } else {
+            whenever(
+                parcelRepository.changeUndeliveredParcelDestination(
+                    parcelId,
+                    streetNumber, streetName, city, state, country, zipCode
+                )
+            ).thenReturn(valueToReturn)
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("parcelDestinationParams")
+    fun `change parcel delivery destination when delivery order already delivered or not found should throw exception`(
+        isUser: Boolean
+    ) {
+        val parcelId = 1L
+        val newDestination = Address(1, "Udemba", "Saka", "Nice", "France")
+        setupDeliveryRepo(newDestination, isUser, parcelId, 0)
+
+        val exception = assertThrows<ResourceNotFoundException> {
+            parcelService.changeParcelDirection(isUser, USER_ID, parcelId, newDestination)
+        }
+
+        if (isUser) {
+            assertEquals(
+                "Couldn't change destination of parcel with id $parcelId for user with id $USER_ID",
+                exception.message
+            )
+        } else {
+            assertEquals(
+                "Couldn't change destination of parcel with id $parcelId",
+                exception.message
+            )
+        }
+
+
+        verifyDeliveryDestinationRepos(isUser, parcelId, newDestination)
     }
 }

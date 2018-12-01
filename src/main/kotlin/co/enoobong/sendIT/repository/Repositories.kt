@@ -45,4 +45,26 @@ interface ParcelRepository : JpaRepository<Parcel, Long> {
     @Modifying
     @Query("UPDATE Parcel SET parcelStatus =:newStatus WHERE parcelStatus <> co.enoobong.sendIT.model.db.ParcelStatus.DELIVERED AND id = :parcelId")
     fun updateParcelStatusWhereStatusIsNotDelivered(@Param("parcelId") parcelId: Long, @Param("newStatus") newStatus: ParcelStatus): Int
+
+    @Modifying
+    @Query(
+        "UPDATE Parcel set " +
+                "to.streetNumber =:streetNumber, to.streetName =:streetName, to.city = :city, to.state = :state, to.country = :country, to.zipCode = :zipCode " +
+                "where parcelStatus <> co.enoobong.sendIT.model.db.ParcelStatus.DELIVERED AND createdBy =:userId AND id =:parcelId"
+    )
+    fun changeUserUndeliveredParcelDestination(
+        userId: Long, parcelId: Long, streetNumber: Int, streetName: String, city: String, state: String,
+        country: String, zipCode: String?
+    ): Int
+
+    @Modifying
+    @Query(
+        "UPDATE Parcel set " +
+                "to.streetNumber =:streetNumber, to.streetName =:streetName, to.city = :city, to.state = :state, to.country = :country, to.zipCode = :zipCode " +
+                "where parcelStatus <> co.enoobong.sendIT.model.db.ParcelStatus.DELIVERED AND id =:parcelId"
+    )
+    fun changeUndeliveredParcelDestination(
+        parcelId: Long, streetNumber: Int, streetName: String, city: String, state: String,
+        country: String, zipCode: String?
+    ): Int
 }

@@ -1,5 +1,6 @@
 package co.enoobong.sendIT.controller
 
+import co.enoobong.sendIT.model.db.Address
 import co.enoobong.sendIT.model.db.RoleName
 import co.enoobong.sendIT.payload.BaseApiResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
@@ -73,6 +74,14 @@ class ParcelController(private val parcelService: ParcelService) {
         val isUser = currentUser.isUser()
 
         val response = parcelService.cancelParcelDeliveryOrder(isUser, currentUser.user.id, parcelId)
+        return ResponseEntity(response, response.status.toHttpStatus())
+    }
+
+    @PatchMapping("{parcelId}/destination")
+    fun changeParcelDirection(@CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long, @Valid @RequestBody newDestination: Address): ResponseEntity<BaseApiResponse> {
+        val isUser = currentUser.isUser()
+
+        val response = parcelService.changeParcelDirection(isUser, currentUser.user.id, parcelId, newDestination)
         return ResponseEntity(response, response.status.toHttpStatus())
     }
 }
