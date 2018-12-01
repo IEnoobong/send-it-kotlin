@@ -64,6 +64,12 @@ data class ParcelDeliveryRequest(
     val currentLocation: Address
 )
 
+data class ParcelStatusRequest(
+    @field:Valid
+    @field:NotNull
+    @field:JsonProperty("new_status")
+    val newStatus: ParcelStatus
+)
 fun ParcelDeliveryRequest.toParcel(): Parcel {
     return with(this) {
         Parcel(weight, weightMetric, ParcelStatus.PLACED, from, to, currentLocation)

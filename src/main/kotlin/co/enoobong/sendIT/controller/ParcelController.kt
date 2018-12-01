@@ -5,6 +5,7 @@ import co.enoobong.sendIT.model.db.RoleName
 import co.enoobong.sendIT.payload.BaseApiResponse
 import co.enoobong.sendIT.payload.ParcelDeliveryRequest
 import co.enoobong.sendIT.payload.ParcelModifiedResponse
+import co.enoobong.sendIT.payload.ParcelStatusRequest
 import co.enoobong.sendIT.payload.SuccessApiResponse
 import co.enoobong.sendIT.security.CurrentUser
 import co.enoobong.sendIT.security.UserPrincipal
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
+import springfox.documentation.annotations.ApiIgnore
 import javax.validation.Valid
 
 @RestController
@@ -70,7 +72,7 @@ class ParcelController(private val parcelService: ParcelService) {
     }
 
     @PatchMapping("{parcelId}/cancel")
-    fun cancelParcelDeliveryOrder(@CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long): ResponseEntity<BaseApiResponse> {
+    fun cancelParcelDeliveryOrder(@ApiIgnore @CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long): ResponseEntity<BaseApiResponse> {
         val isUser = currentUser.isUser()
 
         val response = parcelService.cancelParcelDeliveryOrder(isUser, currentUser.user.id, parcelId)
@@ -78,10 +80,26 @@ class ParcelController(private val parcelService: ParcelService) {
     }
 
     @PatchMapping("{parcelId}/destination")
-    fun changeParcelDirection(@CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long, @Valid @RequestBody newDestination: Address): ResponseEntity<BaseApiResponse> {
+    fun changeParcelDirection(@ApiIgnore @CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long, @Valid @RequestBody newDestination: Address): ResponseEntity<BaseApiResponse> {
         val isUser = currentUser.isUser()
 
         val response = parcelService.changeParcelDirection(isUser, currentUser.user.id, parcelId, newDestination)
+        return ResponseEntity(response, response.status.toHttpStatus())
+    }
+
+    @PatchMapping("{parcelId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun changeParcelStatus(@PathVariable("parcelId") parcelId: Long, @Valid @RequestBody newStatus: ParcelStatusRequest): ResponseEntity<BaseApiResponse> {
+        val response = parcelService.changeParcelStatus(parcelId, newStatus.newStatus)
+
+        return ResponseEntity(response, response.status.toHttpStatus())
+    }
+
+    @PatchMapping("{parcelId}/currentLocation")
+    @PreAuthorize("hasRole('ADMIN')")
+    fun changeParcelCurrentLocation(@PathVariable("parcelId") parcelId: Long, @Valid @RequestBody currentLocation: Address): ResponseEntity<BaseApiResponse> {
+        val response = parcelService.changeParcelCurrentLocation(parcelId, currentLocation)
+
         return ResponseEntity(response, response.status.toHttpStatus())
     }
 }
