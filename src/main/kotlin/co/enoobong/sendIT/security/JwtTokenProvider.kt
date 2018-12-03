@@ -1,11 +1,8 @@
 package co.enoobong.sendIT.security
 
-import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.MalformedJwtException
 import io.jsonwebtoken.SignatureAlgorithm
-import io.jsonwebtoken.SignatureException
-import io.jsonwebtoken.UnsupportedJwtException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -41,7 +38,6 @@ class JwtTokenProvider {
             .setSigningKey(jwtSecret)
             .parseClaimsJws(token)
             .body
-
         return claims.subject.toLong()
     }
 
@@ -49,18 +45,9 @@ class JwtTokenProvider {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken)
             return true
-        } catch (ex: SignatureException) {
-            LOG.error("Invalid JWT signature")
-        } catch (ex: MalformedJwtException) {
-            LOG.error("Invalid JWT token")
-        } catch (ex: ExpiredJwtException) {
-            LOG.error("Expired JWT token")
-        } catch (ex: UnsupportedJwtException) {
-            LOG.error("Unsupported JWT token")
-        } catch (ex: IllegalArgumentException) {
-            LOG.error("JWT claims string is empty.")
+        } catch (ex: JwtException) {
+            LOG.error(ex.message)
         }
-
         return false
     }
 
