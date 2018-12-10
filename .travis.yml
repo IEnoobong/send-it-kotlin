@@ -28,3 +28,7 @@ deploy:
   app: send-it-kotlin
   on:
     repo: IEnoobong/send-it-kotlin
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
