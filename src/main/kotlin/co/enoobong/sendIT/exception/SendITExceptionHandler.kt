@@ -26,14 +26,25 @@ class SendITExceptionHandler {
         exception: Exception,
         httpRequest: HttpServletRequest
     ): ResponseEntity<ErrorApiResponse> {
-        val httpStatus = resolveAnnotatedResponseStatus(exception)
-
         LOG.error("Error Occurred", exception)
+        return when (exception) {
+            is MethodArgumentNotValidException -> {
+                val errorMessageBuilder = StringBuilder()
+                exception.bindingResult.fieldErrors.forEach {
+                    errorMessageBuilder.append(it.field).append(" ").appendln(it.defaultMessage)
+                }
+                val badRequest = HttpStatus.BAD_REQUEST
+                val errorApiResponse = ErrorApiResponse(badRequest.value(), errorMessageBuilder.trim().toString())
+                ResponseEntity(errorApiResponse, badRequest)
+            }
+            else -> {
+                val httpStatus = resolveAnnotatedResponseStatus(exception)
 
-        val errorApiResponse = ErrorApiResponse(httpStatus.value(), exception.message)
+                val errorApiResponse = ErrorApiResponse(httpStatus.value(), exception.message)
 
-        return ResponseEntity(errorApiResponse, httpStatus)
-
+                ResponseEntity(errorApiResponse, httpStatus)
+            }
+        }
     }
 
     private fun resolveAnnotatedResponseStatus(exception: Exception): HttpStatus {
@@ -45,7 +56,6 @@ class SendITExceptionHandler {
                 is AuthenticationException -> HttpStatus.UNAUTHORIZED
                 is AccessDeniedException -> HttpStatus.UNAUTHORIZED
                 is HttpMessageNotReadableException -> HttpStatus.BAD_REQUEST
-                is MethodArgumentNotValidException -> HttpStatus.BAD_REQUEST
                 else -> HttpStatus.INTERNAL_SERVER_ERROR
             }
         }

@@ -32,7 +32,12 @@ class ParcelModifiedResponse(
     @field:JsonProperty("id") val parcelId: Long,
     val message: String,
     @field:JsonInclude(JsonInclude.Include.NON_NULL)
-    val to: String? = null
+    val to: String? = null,
+    @field:JsonInclude(JsonInclude.Include.NON_NULL)
+    val status: String? = null,
+    @field:JsonProperty("current_location")
+    @field:JsonInclude(JsonInclude.Include.NON_NULL)
+    val currentLocation: String? = null
 )
 
 class ParcelDeliveryDTO(

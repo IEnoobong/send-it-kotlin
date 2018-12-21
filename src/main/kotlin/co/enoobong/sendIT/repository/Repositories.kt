@@ -67,4 +67,19 @@ interface ParcelRepository : JpaRepository<Parcel, Long> {
         parcelId: Long, streetNumber: Int, streetName: String, city: String, state: String,
         country: String, zipCode: String?
     ): Int
+
+    @Modifying
+    @Query(
+        "UPDATE Parcel set " +
+                "currentLocation.streetNumber =:streetNumber, currentLocation.streetName =:streetName, currentLocation.city = :city, currentLocation.state = :state " +
+                ", currentLocation.country = :country, currentLocation.zipCode = :zipCode where id =:parcelId"
+    )
+    fun updateCurrentLocationById(
+        parcelId: Long, streetNumber: Int, streetName: String, city: String, state: String,
+        country: String, zipCode: String?
+    ): Int
+
+    @Modifying
+    @Query("UPDATE Parcel SET parcelStatus =:newStatus WHERE id = :parcelId")
+    fun updateParcelStatusById(parcelId: Long, newStatus: ParcelStatus): Int
 }

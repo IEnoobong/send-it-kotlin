@@ -276,9 +276,9 @@ class ParcelServiceImplTest {
         }
     }
 
-    companion object {
+    private companion object {
         @JvmStatic
-        fun parcelDestinationParams(): List<Arguments> {
+        private fun parcelDestinationParams(): List<Arguments> {
             return listOf(
                 Arguments.of(true),
                 Arguments.of(false)
@@ -376,7 +376,81 @@ class ParcelServiceImplTest {
             )
         }
 
-
         verifyDeliveryDestinationRepos(isUser, parcelId, newDestination)
+    }
+
+    @Test
+    fun `change parcel status should change it's status`() {
+        val parcelId = 1L
+        val parcelStatus = ParcelStatus.TRANSITING
+        whenever(parcelRepository.updateParcelStatusById(parcelId, parcelStatus)).thenReturn(1)
+
+        val changeParcelStatus = parcelService.changeParcelStatus(parcelId, parcelStatus)
+
+
+        changeParcelStatus as SuccessApiResponse<*>
+        val parcelModifiedResponse = changeParcelStatus.data[0] as ParcelModifiedResponse
+        assertAll(
+            {
+                assertEquals(HttpStatus.OK.value(), changeParcelStatus.status)
+            },
+            {
+                assertEquals(parcelId, parcelModifiedResponse.parcelId)
+            },
+            {
+                assertEquals(parcelStatus.name, parcelModifiedResponse.status)
+            }
+        )
+
+        inOrder(parcelRepository) {
+            verify(parcelRepository).updateParcelStatusById(parcelId, parcelStatus)
+        }
+    }
+
+    @Test
+    fun `change parcel current location should change it's current location`() {
+        val parcelId = 1L
+        val currentLocation = Address(1, "Udemba", "Saka", "Nice", "France")
+        val (streetNumber, streetName, city, state, country, zipCode) = currentLocation
+        whenever(
+            parcelRepository.updateCurrentLocationById(
+                parcelId,
+                streetNumber,
+                streetName,
+                city,
+                state,
+                country,
+                zipCode
+            )
+        ).thenReturn(1)
+
+        val changeParcelLocation = parcelService.changeParcelCurrentLocation(parcelId, currentLocation)
+
+
+        changeParcelLocation as SuccessApiResponse<*>
+        val parcelModifiedResponse = changeParcelLocation.data[0] as ParcelModifiedResponse
+        assertAll(
+            {
+                assertEquals(HttpStatus.OK.value(), changeParcelLocation.status)
+            },
+            {
+                assertEquals(parcelId, parcelModifiedResponse.parcelId)
+            },
+            {
+                assertEquals(currentLocation.displayableAddress(), parcelModifiedResponse.currentLocation)
+            }
+        )
+
+        inOrder(parcelRepository) {
+            verify(parcelRepository).updateCurrentLocationById(
+                parcelId,
+                streetNumber,
+                streetName,
+                city,
+                state,
+                country,
+                zipCode
+            )
+        }
     }
 }

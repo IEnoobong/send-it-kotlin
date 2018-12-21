@@ -36,6 +36,10 @@ interface ParcelService {
         parcelId: Long,
         newDestination: Address
     ): BaseApiResponse
+
+    fun changeParcelStatus(parcelId: Long, newStatus: ParcelStatus): BaseApiResponse
+
+    fun changeParcelCurrentLocation(parcelId: Long, currentLocation: Address): BaseApiResponse
 }
 
 @Service
@@ -45,7 +49,8 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
         private const val PARCEL_DESTINATION_MESSAGE = "Parcel destination updated"
         private const val PARCEL_CREATED_MESSAGE = "order created"
         private const val PARCEL_CANCELLED_MESSAGE = "order cancelled"
-
+        private const val PARCEL_STATUS_MESSAGE = "Parcel status updated"
+        private const val PARCEL_LOCATION_MESSAGE = "Parcel location updated"
     }
 
     override fun createParcel(parcelDeliveryRequest: ParcelDeliveryRequest): BaseApiResponse {
@@ -128,9 +133,17 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
     private fun parcelModifiedSuccessResponse(
         parcelId: Long,
         message: String,
-        newDestination: Address? = null
+        newDestination: Address? = null,
+        newStatus: ParcelStatus? = null,
+        newLocation: Address? = null
     ): SuccessApiResponse<ParcelModifiedResponse> {
-        val parcelModifiedResponse = ParcelModifiedResponse(parcelId, message, newDestination?.displayableAddress())
+        val parcelModifiedResponse = ParcelModifiedResponse(
+            parcelId,
+            message,
+            newDestination?.displayableAddress(),
+            newStatus?.name,
+            newLocation?.displayableAddress()
+        )
         return SuccessApiResponse(HttpStatus.OK.value(), listOf(parcelModifiedResponse))
     }
 
@@ -191,6 +204,35 @@ class ParcelServiceImpl(private val parcelRepository: ParcelRepository) : Parcel
             parcelModifiedSuccessResponse(parcelId, PARCEL_DESTINATION_MESSAGE, newDestination)
         } else {
             throw ResourceNotFoundException("Couldn't change destination of parcel with id $parcelId for user with id $userId")
+        }
+    }
+
+    @Transactional
+    override fun changeParcelStatus(parcelId: Long, newStatus: ParcelStatus): BaseApiResponse {
+        val rowsAffected = parcelRepository.updateParcelStatusById(parcelId, newStatus)
+        return if (rowsAffected == 1) {
+            parcelModifiedSuccessResponse(parcelId, PARCEL_STATUS_MESSAGE, newStatus = newStatus)
+        } else {
+            throw ResourceNotFoundException("Couldn't change status of parcel with id $parcelId")
+        }
+    }
+
+    @Transactional
+    override fun changeParcelCurrentLocation(parcelId: Long, currentLocation: Address): BaseApiResponse {
+        val (streetNumber, streetName, city, state, country, zipCode) = currentLocation
+        val rowsAffected = parcelRepository.updateCurrentLocationById(
+            parcelId,
+            streetNumber,
+            streetName,
+            city,
+            state,
+            country,
+            zipCode
+        )
+        return if (rowsAffected == 1) {
+            parcelModifiedSuccessResponse(parcelId, PARCEL_LOCATION_MESSAGE, newLocation = currentLocation)
+        } else {
+            throw ResourceNotFoundException("Couldn't change current location of parcel with id $parcelId")
         }
     }
 }

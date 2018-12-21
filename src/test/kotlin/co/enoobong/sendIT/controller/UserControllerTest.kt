@@ -6,10 +6,10 @@ import co.enoobong.sendIT.model.db.ParcelStatus
 import co.enoobong.sendIT.model.db.WeightMetric
 import co.enoobong.sendIT.payload.ParcelDeliveryDTO
 import co.enoobong.sendIT.payload.SuccessApiResponse
+import co.enoobong.sendIT.security.JwtTokenProvider
 import co.enoobong.sendIT.service.ParcelService
 import co.enoobong.sendIT.utill.ADMIN_ID
-import co.enoobong.sendIT.utill.ADMIN_TOKEN
-import co.enoobong.sendIT.utill.USER_TOKEN
+import co.enoobong.sendIT.utill.USER_ID
 import com.nhaarman.mockito_kotlin.given
 import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.Test
@@ -26,7 +26,7 @@ import java.time.Instant
 
 @ControllerTest
 @WebMvcTest(UserController::class)
-class UserControllerTest(@Autowired private val mockMvc: MockMvc) {
+class UserControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired private val jwtTokenProvider: JwtTokenProvider) {
 
     @MockBean
     private lateinit var parcelService: ParcelService
@@ -48,11 +48,12 @@ class UserControllerTest(@Autowired private val mockMvc: MockMvc) {
             address.displayableAddress()
         )
         val apiResponse = SuccessApiResponse(httpStatus, listOf(parcelDeliveryDTO))
+        val adminToken = jwtTokenProvider.generateToken(ADMIN_ID)
         given(parcelService.getAllParcelDeliveryOrderForUser(ADMIN_ID)).willReturn(apiResponse)
 
         mockMvc.perform(
             get("/api/v1/users/$ADMIN_ID/parcels")
-                .header("Authorization", "Bearer $ADMIN_TOKEN")
+                .header("Authorization", "Bearer $adminToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))
@@ -62,9 +63,10 @@ class UserControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `attempt of user to get parcel delivery not belonging to user should be unauthorized`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
         mockMvc.perform(
             get("/api/v1/users/3/parcels")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isUnauthorized)
             .andExpect(jsonPath("\$.status", `is`(HttpStatus.UNAUTHORIZED.value())))
