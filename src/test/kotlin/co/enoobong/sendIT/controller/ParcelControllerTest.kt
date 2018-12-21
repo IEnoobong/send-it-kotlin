@@ -10,8 +10,9 @@ import co.enoobong.sendIT.payload.ParcelDeliveryRequest
 import co.enoobong.sendIT.payload.ParcelModifiedResponse
 import co.enoobong.sendIT.payload.ParcelStatusRequest
 import co.enoobong.sendIT.payload.SuccessApiResponse
+import co.enoobong.sendIT.security.JwtTokenProvider
 import co.enoobong.sendIT.service.ParcelService
-import co.enoobong.sendIT.utill.ADMIN_TOKEN
+import co.enoobong.sendIT.utill.ADMIN_ID
 import co.enoobong.sendIT.utill.USER_ID
 import co.enoobong.sendIT.utill.USER_TOKEN
 import co.enoobong.sendIT.utill.toJsonString
@@ -34,13 +35,15 @@ import java.time.Instant
 
 @ControllerTest
 @WebMvcTest(ParcelController::class)
-class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
+class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired private val jwtTokenProvider: JwtTokenProvider) {
 
     @MockBean
     private lateinit var parcelService: ParcelService
 
     @Test
     fun `create parcel delivery order should create parcel delivery order`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
         val parcelDeliveryRequest = ParcelDeliveryRequest(1f, WeightMetric.KG, address, address, address)
 
@@ -50,7 +53,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             post("/api/v1/parcels")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(parcelDeliveryRequest.toJsonString())
         ).andExpect(status().isCreated)
@@ -75,12 +78,14 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `create parcel delivery with invalid fields should respond with bad request`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         val address = Address(0, "Udemba", "Saka", "Nice", "France")
         val parcelDeliveryRequest = ParcelDeliveryRequest(1f, WeightMetric.KG, address, address, address)
 
         mockMvc.perform(
             post("/api/v1/parcels")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(parcelDeliveryRequest.toJsonString())
         ).andExpect(status().isBadRequest)
@@ -91,6 +96,8 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `create parcel delivery when not created should return bad request`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
         val parcelDeliveryRequest = ParcelDeliveryRequest(1f, WeightMetric.KG, address, address, address)
 
@@ -100,7 +107,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             post("/api/v1/parcels")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(parcelDeliveryRequest.toJsonString())
         ).andExpect(status().isBadRequest)
@@ -112,6 +119,8 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `get all parcel delivery orders should return the delivery orders`() {
+        val adminToken = jwtTokenProvider.generateToken(ADMIN_ID)
+
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
         val parcelDeliveryDTO = ParcelDeliveryDTO(
             1,
@@ -132,7 +141,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             get("/api/v1/parcels")
-                .header("Authorization", "Bearer $ADMIN_TOKEN")
+                .header("Authorization", "Bearer $adminToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
@@ -143,19 +152,31 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `get all parcel delivery orders with wrong role should be unauthorized`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         mockMvc.perform(
             get("/api/v1/parcels")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isUnauthorized)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
             .andExpect(jsonPath("\$.status").value(HttpStatus.UNAUTHORIZED.value()))
             .andExpect(jsonPath("\$.error").isString)
+    }
 
+    @Test
+    fun `get all parcel delivery orders with expired token should be unauthorized`() {
+        mockMvc.perform(
+            get("/api/v1/parcels")
+                .header("Authorization", "Bearer $USER_TOKEN")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+        ).andExpect(status().isUnauthorized)
     }
 
     @Test
     fun `get parcel delivery order for non-admin by id should return delivery orders`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         val parcelId = 1L
         val httpStatus = HttpStatus.OK.value()
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
@@ -176,7 +197,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             get("/api/v1/parcels/$parcelId")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))
@@ -186,6 +207,8 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `get parcel delivery order for admin by id should return delivery orders`() {
+        val adminToken = jwtTokenProvider.generateToken(ADMIN_ID)
+
         val parcelId = 1L
         val httpStatus = HttpStatus.OK.value()
         val address = Address(1, "Udemba", "Saka", "Nice", "France")
@@ -206,7 +229,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             get("/api/v1/parcels/$parcelId")
-                .header("Authorization", "Bearer $ADMIN_TOKEN")
+                .header("Authorization", "Bearer $adminToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))
@@ -216,6 +239,8 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `cancel parcel delivery order should cancel parcel delivery order`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         val parcelId = 1L
         val httpStatus = HttpStatus.OK.value()
         val parcelModifiedResponse = ParcelModifiedResponse(parcelId, "order cancelled")
@@ -224,7 +249,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             patch("/api/v1/parcels/$parcelId/cancel")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(jsonPath("\$.status", `is`(httpStatus)))
@@ -234,6 +259,8 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `change parcel destination should change it's destination`() {
+        val userToken = jwtTokenProvider.generateToken(USER_ID)
+
         val parcelId = 1L
         val httpStatus = HttpStatus.OK.value()
         val newDestination = Address(1, "Udemba", "Saka", "Nice", "France")
@@ -243,7 +270,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             patch("/api/v1/parcels/$parcelId/destination")
-                .header("Authorization", "Bearer $USER_TOKEN")
+                .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newDestination.toJsonString())
         ).andExpect(status().isOk)
@@ -254,6 +281,8 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
     @Test
     fun `change parcel status should change it's status`() {
+        val adminToken = jwtTokenProvider.generateToken(ADMIN_ID)
+
         val parcelId = 1L
         val httpStatus = HttpStatus.OK.value()
         val newStatus = ParcelStatusRequest(ParcelStatus.TRANSITING)
@@ -263,7 +292,7 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc) {
 
         mockMvc.perform(
             patch("/api/v1/parcels/$parcelId/status")
-                .header("Authorization", "Bearer $ADMIN_TOKEN")
+                .header("Authorization", "Bearer $adminToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newStatus.toJsonString())
         ).andExpect(status().isOk)
