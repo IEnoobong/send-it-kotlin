@@ -3,7 +3,7 @@ env:
     - CC_TEST_REPORTER_ID=727af63d2599ea9bb529b67ae48236b60adb7d50ac266e8b572b8ccc98fce5b9
 language: java
 jdk:
-  - openjdk8
+  - oraclejdk11
 dist: xenial
 install: skip
 before_script:
@@ -28,3 +28,7 @@ deploy:
   app: send-it-kotlin
   on:
     repo: IEnoobong/send-it-kotlin
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
