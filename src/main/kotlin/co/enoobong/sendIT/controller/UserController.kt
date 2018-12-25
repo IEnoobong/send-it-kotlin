@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import springfox.documentation.annotations.ApiIgnore
 
 @RestController
 @RequestMapping(
@@ -23,7 +24,11 @@ import org.springframework.web.bind.annotation.RestController
 class UserController(private val parcelService: ParcelService) {
 
     @GetMapping("{userId}/parcels")
-    fun getParcelDeliveryOrder(@CurrentUser currentUser: UserPrincipal, @PathVariable("userId") userId: Long): ResponseEntity<BaseApiResponse> {
+    fun getParcelDeliveryOrder(
+        @ApiIgnore @CurrentUser currentUser: UserPrincipal,
+        @PathVariable("userId") userId: Long
+    ):
+            ResponseEntity<BaseApiResponse> {
         val isUser = currentUser.isUser()
         if (isUser && currentUser.user.id != userId) {
             throw UnauthorizedAccessException("You can only view your parcel delivery orders")

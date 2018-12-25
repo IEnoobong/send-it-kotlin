@@ -60,7 +60,10 @@ class ParcelController(private val parcelService: ParcelService) {
 
     @GetMapping("{parcelId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    fun getParcelDeliveryOrder(@CurrentUser currentUser: UserPrincipal, @PathVariable("parcelId") parcelId: Long): ResponseEntity<BaseApiResponse> {
+    fun getParcelDeliveryOrder(
+        @ApiIgnore @CurrentUser currentUser: UserPrincipal,
+        @PathVariable("parcelId") parcelId: Long
+    ): ResponseEntity<BaseApiResponse> {
         val notAdmin = !currentUser.user.roles.map { it.name }.contains(RoleName.ROLE_ADMIN)
         if (notAdmin) {
             val response = parcelService.getParcelDeliveryOrderForUser(currentUser.user.id, parcelId)
