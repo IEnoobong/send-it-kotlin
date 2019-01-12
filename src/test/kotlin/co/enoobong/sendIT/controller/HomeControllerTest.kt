@@ -9,7 +9,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.view
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers.print as printResult
 
 @ControllerTest
 @WebMvcTest(value = [HomeController::class])
@@ -18,7 +17,7 @@ class HomeControllerTest(@Autowired private val mockMvc: MockMvc) {
     @Test
     fun `home should redirect to documentation`() {
         mockMvc.perform(get("/"))
-            .andExpect(status().`is`(302))
+            .andExpect(status().isFound)
             .andExpect(view().name("redirect:/swagger-ui.html"))
             .andExpect(redirectedUrl("/swagger-ui.html"))
     }
