@@ -101,6 +101,5 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
             .andExpect(jsonPath("\$.status").value(HttpStatus.OK.value()))
             .andExpect(jsonPath("\$.data.[0].token").isString)
             .andExpect(jsonPath("\$.data.[0].user").isMap)
-
     }
 }
