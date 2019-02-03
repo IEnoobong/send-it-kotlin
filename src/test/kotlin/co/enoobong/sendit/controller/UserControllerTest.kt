@@ -9,6 +9,7 @@ import co.enoobong.sendit.payload.SuccessApiResponse
 import co.enoobong.sendit.security.JwtTokenProvider
 import co.enoobong.sendit.service.ParcelService
 import co.enoobong.sendit.utill.ADMIN_ID
+import co.enoobong.sendit.utill.ResponseBodyMatchers
 import co.enoobong.sendit.utill.USER_ID
 import com.nhaarman.mockito_kotlin.given
 import org.hamcrest.Matchers.`is`
@@ -56,9 +57,11 @@ class UserControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired pri
                 .header("Authorization", "Bearer $adminToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelDeliveryDTO.parcelId))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelDeliveryDTO>(
+                    apiResponse
+                )
+            )
     }
 
     @Test
