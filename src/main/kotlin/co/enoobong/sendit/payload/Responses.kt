@@ -25,11 +25,13 @@ data class UserDTO(
     val username: String,
     val email: String,
     val registered: Instant,
+    @get:JsonProperty("isAdmin")
     val isAdmin: Boolean
 )
 
 class ParcelModifiedResponse(
-    @field:JsonProperty("id") val parcelId: Long,
+    @field:JsonProperty("id")
+    val parcelId: Long,
     val message: String,
     @field:JsonInclude(JsonInclude.Include.NON_NULL)
     val to: String? = null,

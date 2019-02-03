@@ -10,6 +10,7 @@ import co.enoobong.sendit.payload.UserResponse
 import co.enoobong.sendit.payload.toUser
 import co.enoobong.sendit.service.AuthService
 import co.enoobong.sendit.service.toUserDTO
+import co.enoobong.sendit.utill.ResponseBodyMatchers.Companion.responseBody
 import co.enoobong.sendit.utill.USER_TOKEN
 import co.enoobong.sendit.utill.toJsonString
 import org.junit.jupiter.api.Test
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
@@ -39,12 +41,11 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         val user = signUpRequest.toUser()
         user.createdAt = Instant.now()
         val signUpResponse = UserResponse(USER_TOKEN, user.toUserDTO())
-        given(authService.signUpUser(signUpRequest)).willReturn(
-            SuccessApiResponse(
-                HttpStatus.CREATED.value(),
-                listOf(signUpResponse)
-            )
+        val apiResponse = SuccessApiResponse(
+            HttpStatus.CREATED.value(),
+            listOf(signUpResponse)
         )
+        given(authService.signUpUser(signUpRequest)).willReturn(apiResponse)
 
         mockMvc.perform(
             post("/api/v1/auth/signup")
@@ -53,10 +54,8 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         )
             .andExpect(status().isCreated)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-            .andExpect(jsonPath("\$.status").value(HttpStatus.CREATED.value()))
-            .andExpect(jsonPath("\$.data.[0].token").isString)
-            .andExpect(jsonPath("\$.data.[0].user").isMap)
-            .andReturn()
+            .andExpect(header().exists("location"))
+            .andExpect(responseBody().containsObjectAsSuccessApiResponseJson<UserResponse>(apiResponse))
     }
 
     @Test
@@ -85,12 +84,8 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
         val user = User("Eno", "Ibanga", null, "ienoobong", "ibanga@yahoo.co", "yagathem")
         user.createdAt = Instant.now()
         val loginResponse = UserResponse(USER_TOKEN, user.toUserDTO())
-        given(authService.loginUser(loginRequest)).willReturn(
-            SuccessApiResponse(
-                HttpStatus.OK.value(),
-                listOf(loginResponse)
-            )
-        )
+        val apiResponse = SuccessApiResponse(HttpStatus.OK.value(), listOf(loginResponse))
+        given(authService.loginUser(loginRequest)).willReturn(apiResponse)
 
         mockMvc.perform {
             post("/api/v1/auth/login")
@@ -98,8 +93,6 @@ class AuthControllerTest(@Autowired private val mockMvc: MockMvc) {
                 .content(loginRequest.toJsonString())
                 .buildRequest(it)
         }.andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status").value(HttpStatus.OK.value()))
-            .andExpect(jsonPath("\$.data.[0].token").isString)
-            .andExpect(jsonPath("\$.data.[0].user").isMap)
+            .andExpect(responseBody().containsObjectAsSuccessApiResponseJson<UserResponse>(apiResponse))
     }
 }

@@ -13,11 +13,11 @@ import co.enoobong.sendit.payload.SuccessApiResponse
 import co.enoobong.sendit.security.JwtTokenProvider
 import co.enoobong.sendit.service.ParcelService
 import co.enoobong.sendit.utill.ADMIN_ID
+import co.enoobong.sendit.utill.ResponseBodyMatchers
 import co.enoobong.sendit.utill.USER_ID
 import co.enoobong.sendit.utill.USER_TOKEN
 import co.enoobong.sendit.utill.toJsonString
 import com.nhaarman.mockito_kotlin.given
-import org.hamcrest.Matchers.`is`
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -58,9 +58,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .content(parcelDeliveryRequest.toJsonString())
         ).andExpect(status().isCreated)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-            .andExpect(jsonPath("\$.status").value(HttpStatus.CREATED.value()))
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelCreatedResponse.parcelId))
-            .andExpect(jsonPath("\$.data.[0].message").value(parcelCreatedResponse.message))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelModifiedResponse>(
+                    apiResponse
+                )
+            )
     }
 
     @Test
@@ -145,8 +147,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-            .andExpect(jsonPath("\$.status").value(HttpStatus.OK.value()))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelDeliveryDTO>(
+                    apiResponse
+                )
+            )
 
     }
 
@@ -200,9 +205,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelDeliveryDTO>(
+                    apiResponse
+                )
+            )
     }
 
     @Test
@@ -232,9 +239,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .header("Authorization", "Bearer $adminToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelDeliveryDTO>(
+                    apiResponse
+                )
+            )
     }
 
     @Test
@@ -252,9 +261,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .header("Authorization", "Bearer $userToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelModifiedResponse>(
+                    apiResponse
+                )
+            )
     }
 
     @Test
@@ -274,9 +285,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newDestination.toJsonString())
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelModifiedResponse>(
+                    apiResponse
+                )
+            )
     }
 
     @Test
@@ -296,9 +309,11 @@ class ParcelControllerTest(@Autowired private val mockMvc: MockMvc, @Autowired p
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(newStatus.toJsonString())
         ).andExpect(status().isOk)
-            .andExpect(jsonPath("\$.status", `is`(httpStatus)))
-            .andExpect(jsonPath("\$.data.[0]").isMap)
-            .andExpect(jsonPath("\$.data.[0].id").value(parcelId))
+            .andExpect(
+                ResponseBodyMatchers.responseBody().containsObjectAsSuccessApiResponseJson<ParcelModifiedResponse>(
+                    apiResponse
+                )
+            )
     }
 
 }
