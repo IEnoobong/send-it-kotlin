@@ -12,7 +12,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
-import javax.servlet.http.HttpServletRequest
 
 @ControllerAdvice
 class SendITExceptionHandler {
@@ -23,8 +22,7 @@ class SendITExceptionHandler {
 
     @ExceptionHandler
     fun handleException(
-        exception: Exception,
-        httpRequest: HttpServletRequest
+        exception: Exception
     ): ResponseEntity<ErrorApiResponse> {
         LOG.error("Error Occurred", exception)
         return when (exception) {
