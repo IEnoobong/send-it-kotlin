@@ -216,17 +216,33 @@ class Parcel(
 
         other as Parcel
 
-        if (id != other.id) return false
         if (id != other.createdBy) return false
+        if (weight != other.weight) return false
+        if (weightMetric != other.weightMetric) return false
+        if (parcelStatus != other.parcelStatus) return false
+        if (from != other.from) return false
+        if (to != other.to) return false
+        if (currentLocation != other.currentLocation) return false
+        if (deliveredOn != other.deliveredOn) return false
+        if (sentOn != other.sentOn) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + createdBy.hashCode()
+        var result = createdBy.hashCode()
+        result = 31 * result + weight.hashCode()
+        result = 31 * result + weightMetric.hashCode()
+        result = 31 * result + parcelStatus.hashCode()
+        result = 31 * result + from.hashCode()
+        result = 31 * result + to.hashCode()
+        result = 31 * result + currentLocation.hashCode()
+        result = 31 * result + (deliveredOn?.hashCode() ?: 0)
+        result = 31 * result + (sentOn?.hashCode() ?: 0)
         return result
     }
+
+
 }
 
 @Embeddable
