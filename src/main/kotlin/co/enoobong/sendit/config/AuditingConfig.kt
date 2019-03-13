@@ -28,7 +28,7 @@ class SpringSecurityAuditorAwareImpl : AuditorAware<Long> {
 
         val userPrincipal = authentication.principal as UserPrincipal
 
-        return Optional.ofNullable(userPrincipal.user.id)
+        return Optional.of(userPrincipal.user.id)
     }
 
 }
