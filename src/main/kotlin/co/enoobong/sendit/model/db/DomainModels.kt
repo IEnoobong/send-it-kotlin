@@ -209,38 +209,6 @@ class Parcel(
 
     @Column(name = "sent_on")
     val sentOn: Instant? = null
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Parcel
-
-        if (createdBy != other.createdBy) return false
-        if (weight != other.weight) return false
-        if (weightMetric != other.weightMetric) return false
-        if (parcelStatus != other.parcelStatus) return false
-        if (from != other.from) return false
-        if (to != other.to) return false
-        if (currentLocation != other.currentLocation) return false
-        if (deliveredOn != other.deliveredOn) return false
-        if (sentOn != other.sentOn) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = weight.hashCode()
-        result = 31 * result + createdBy.hashCode()
-        result = 31 * result + weightMetric.hashCode()
-        result = 31 * result + parcelStatus.hashCode()
-        result = 31 * result + from.hashCode()
-        result = 31 * result + to.hashCode()
-        result = 31 * result + currentLocation.hashCode()
-        result = 31 * result + (deliveredOn?.hashCode() ?: 0)
-        result = 31 * result + (sentOn?.hashCode() ?: 0)
-        return result
-    }
 }
 
 @Embeddable
@@ -275,34 +243,6 @@ data class Address(
     fun displayableAddress(): String {
         return "$streetNumber $streetName, $city, $state, $country"
     }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Address
-
-        if (streetNumber != other.streetNumber) return false
-        if (streetName != other.streetName) return false
-        if (city != other.city) return false
-        if (state != other.state) return false
-        if (country != other.country) return false
-        if (zipCode != other.zipCode) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = streetNumber
-        result = 31 * result + streetName.hashCode()
-        result = 31 * result + city.hashCode()
-        result = 31 * result + state.hashCode()
-        result = 31 * result + country.hashCode()
-        result = 31 * result + (zipCode?.hashCode() ?: 0)
-        return result
-    }
-
-
 }
 
 enum class WeightMetric {
