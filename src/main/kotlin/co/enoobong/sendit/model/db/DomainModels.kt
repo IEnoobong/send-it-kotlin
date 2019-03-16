@@ -45,6 +45,7 @@ class Role(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "bigint unsigned")
     val id: Long = 0
 ) {
     override fun equals(other: Any?): Boolean {
@@ -111,6 +112,7 @@ class User(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "bigint unsigned")
     val id: Long = 0,
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -201,6 +203,7 @@ class Parcel(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "bigint unsigned")
     val id: Long = 0
 ) : UserDateAudit() {
 
@@ -216,7 +219,7 @@ class Parcel(
 
         other as Parcel
 
-        if (id != other.createdBy) return false
+        if (createdBy != other.createdBy) return false
         if (weight != other.weight) return false
         if (weightMetric != other.weightMetric) return false
         if (parcelStatus != other.parcelStatus) return false
