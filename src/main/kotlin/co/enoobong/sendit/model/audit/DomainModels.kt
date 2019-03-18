@@ -32,10 +32,10 @@ abstract class DateAudit : Serializable {
 @JsonIgnoreProperties(value = ["createdBy", "updatedBy"], allowGetters = true)
 abstract class UserDateAudit : DateAudit() {
     @CreatedBy
-    @Column(name = "created_by", nullable = false, updatable = false)
+    @Column(name = "created_by", nullable = false, updatable = false, columnDefinition = "bigint unsigned")
     var createdBy: Long = 0L
 
     @LastModifiedBy
-    @Column(name = "updated_by", nullable = false)
+    @Column(name = "updated_by", nullable = false, columnDefinition = "bigint unsigned")
     var updatedBy: Long = 0L
 }
